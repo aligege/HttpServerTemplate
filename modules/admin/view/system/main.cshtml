@@ -1,0 +1,347 @@
+﻿    <% include modules/admin/view/common/header.cshtml %>
+    <script src="/statics/custom/vue-page.js"></script>
+    <!-- Page Body -->
+    <div class="page-body" id="app">
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="row">
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                        <div class="databox radius-bordered databox-shadowed databox-graded">
+                            <div class="databox-left bg-themesecondary">
+                                <div class="databox-piechart">
+                                    <div data-toggle="easypiechart" class="easyPieChart" data-barcolor="#fff" data-linecap="butt" data-percent="50" data-animate="500" data-linewidth="3" data-size="47" data-trackcolor="rgba(255,255,255,0.1)" style="margin-top:13px">总用户</div>
+                                </div>
+                            </div>
+                            <div class="databox-right">
+                                <span class="databox-number themesecondary" style="margin-top:15px;font-size:48px"><%=model.system.total_num%></span>
+                                <div class="databox-stat themesecondary radius-bordered">
+                                    <i class="stat-icon icon-lg fa fa-tasks"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                        <div class="databox radius-bordered databox-shadowed databox-graded">
+                            <div class="databox-left bg-themethirdcolor">
+                                <div class="databox-piechart">
+                                    <div data-toggle="easypiechart" class="easyPieChart" data-barcolor="#fff" data-linecap="butt" data-percent="15" data-animate="500" data-linewidth="3" data-size="47" data-trackcolor="rgba(255,255,255,0.2)" style="padding-top:3px">今日<br/>新增</div>
+                                </div>
+                            </div>
+                            <div class="databox-right">
+                                <span class="databox-number themethirdcolor" style="margin-top:15px;font-size:48px"><%=model.system.today_register%></span>
+                                <div class="databox-stat themethirdcolor radius-bordered">
+                                    <i class="stat-icon  icon-lg fa fa-envelope-o"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                        <div class="databox radius-bordered databox-shadowed databox-graded">
+                            <div class="databox-left bg-themeprimary">
+                                <div class="databox-piechart">
+                                    <div id="users-pie" data-toggle="easypiechart" class="easyPieChart" data-barcolor="#fff" data-linecap="butt" data-percent="76" data-animate="500" data-linewidth="3" data-size="47" data-trackcolor="rgba(255,255,255,0.1)" style="padding-top:3px">今日<br/>活跃</div>
+                                </div>
+                            </div>
+                            <div class="databox-right">
+                                <span class="databox-number themeprimary" style="margin-top:15px;font-size:48px"><%=model.system.today_login%></span>
+                                <div class="databox-state bg-themeprimary">
+                                    <i class="fa fa-check"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                        <div class="databox radius-bordered databox-shadowed databox-graded">
+                            <div class="databox-left no-padding bordered-left-2 bordered-palegreen">
+                                <img src="" style="width:65px; height:65px;">
+                            </div>
+                            <div class="databox-right padding-top-20">
+                                <div class="databox-stat palegreen">
+                                    <i class="stat-icon icon-xlg fa fa-phone"></i>
+                                </div>
+                                <div class="databox-text darkgray">fdsff</div>
+                                <div class="databox-text darkgray">代理冠军</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12 col-lg-12">
+                        <div class="widget">
+                            <div class="widget-header ">
+                                <span class="widget-caption">活跃(小时)</span>
+                                <div class="widget-buttons">
+                                    <a href="#" data-toggle="maximize">
+                                        <i class="fa fa-expand"></i>
+                                    </a>
+                                    <a href="#" data-toggle="collapse">
+                                        <i class="fa fa-minus"></i>
+                                    </a>
+                                    <a href="#" data-toggle="dispose">
+                                        <i class="fa fa-times"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="widget-body">
+                                <div id="area-chart-login" class="chart chart-lg"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" v-show="false">
+                <div class="orders-container">
+                    <div class="orders-header">
+                        <h6>Latest Orders</h6>
+                    </div>
+                    <ul class="orders-list">
+                        <li class="order-item">
+                            <div class="row">
+                                <div class="col-lg-8 col-md-8 col-sm-8 col-xs-8 item-left">
+                                    <div class="item-booker">Ned Stards</div>
+                                    <div class="item-time">
+                                        <i class="fa fa-calendar"></i>
+                                        <span>10 minutes ago</span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 item-right">
+                                    <div class="item-price">
+                                        <span class="currency">$</span>
+                                        <span class="price">400</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <a class="item-more" href="">
+                                <i></i>
+                            </a>
+                        </li>
+                        <li class="order-item top">
+                            <div class="row">
+                                <div class="col-lg-8 col-md-8 col-sm-8 col-xs-8 item-left">
+                                    <div class="item-booker">Steve Lewis</div>
+                                    <div class="item-time">
+                                        <i class="fa fa-calendar"></i>
+                                        <span>2 hours ago</span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 item-right">
+                                    <div class="item-price">
+                                        <span class="currency">$</span>
+                                        <span class="price">620</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <a class="item-more" href="">
+                                <i></i>
+                            </a>
+                        </li>
+                        <li class="order-item">
+                            <div class="row">
+                                <div class="col-lg-8 col-md-8 col-sm-8 col-xs-8 item-left">
+                                    <div class="item-booker">John Ford</div>
+                                    <div class="item-time">
+                                        <i class="fa fa-calendar"></i>
+                                        <span>Today 8th July</span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 item-right">
+                                    <div class="item-price">
+                                        <span class="currency">$</span>
+                                        <span class="price">220</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <a class="item-more" href="">
+                                <i></i>
+                            </a>
+                        </li>
+                        <li class="order-item">
+                            <div class="row">
+                                <div class="col-lg-8 col-md-8 col-sm-8 col-xs-8 item-left">
+                                    <div class="item-booker">Kim Basinger</div>
+                                    <div class="item-time">
+                                        <i class="fa fa-calendar"></i>
+                                        <span>Yesterday 7th July</span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 item-right">
+                                    <div class="item-price">
+                                        <span class="currency">$</span>
+                                        <span class="price">400</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <a class="item-more" href="">
+                                <i></i>
+                            </a>
+                        </li>
+                        <li class="order-item">
+                            <div class="row">
+                                <div class="col-lg-8 col-md-8 col-sm-8 col-xs-8 item-left">
+                                    <div class="item-booker">Steve Lewis</div>
+                                    <div class="item-time">
+                                        <i class="fa fa-calendar"></i>
+                                        <span>5th July</span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 item-right">
+                                    <div class="item-price">
+                                        <span class="currency">$</span>
+                                        <span class="price">340</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <a class="item-more" href="">
+                                <i></i>
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="orders-footer">
+                        <a class="show-all" href=""><i class="fa fa-angle-down"></i> Show All</a>
+                        <div class="help">
+                            <a href=""><i class="fa fa-question"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-9 col-md-9">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">管理员登录日志</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <table id="tb_data_list" class="table table-bordered table-striped">
+                            <thead>
+                            <tr style="font-size: 14px;">
+                                <th>最近登陆时间</th>
+                                <th>最近登陆ip</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="data in datas">
+                                    <td>{{convertTime(data.login_time)}}</td>
+                                    <td>{{data.login_ip}}</td>
+                                </tr>
+                            </tbody>
+    
+                        </table>
+    
+                        <div class="row">
+                        <div class="col-sm-5"></div>
+                        <div class="col-sm-7">
+                            <vue-nav :cur="cur" :all="all" :url="url" :total="total" :jump_cb="onPage"></vue-nav>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Body -->
+    <% include modules/admin/view/common/end_main.cshtml %>
+
+
+    <!--Page Related Scripts-->
+    <script src="/statics/js/charts/morris/morris.js"></script>
+    <script src="/statics/js/charts/morris/morris-init.js"></script>
+
+    <script>
+        // If you want to draw your charts with Theme colors you must run initiating charts after that current skin is loaded
+        $(window).bind("load", function () {
+
+            /*Sets Themed Colors Based on Themes*/
+            themeprimary = getThemeColorFromCss('themeprimary');
+            themesecondary = getThemeColorFromCss('themesecondary');
+            themethirdcolor = getThemeColorFromCss('themethirdcolor');
+            themefourthcolor = getThemeColorFromCss('themefourthcolor');
+            themefifthcolor = getThemeColorFromCss('themefifthcolor');
+
+            InitiateAreaByHours.init("user/GetLoginNum",
+                                "area-chart-login",
+                                "time",
+                                ["num"],
+                                ["次数"]);
+        });
+        var admin_list_vm = new Vue({
+            el: '#app',
+            data: 
+            {
+                datas:[],
+                users:[],
+                cur: 0,
+                all: 0,
+                total: 0,
+                url:window.location.href
+            },
+            components:
+            {
+                'vue-nav': Vnav
+            },
+            created()
+            {
+                this.onPage(1)
+            },
+            methods:
+            {
+                convertTime:function(time)
+                {
+                    return moment(time).format('YYYY-M-D H:mm:ss')
+                },
+                onPage:function(page)
+                {
+                    this.updateDatas(page-1)
+                },
+                updateDatas:function(page)
+                {
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/system/AdminLoginList",
+                        dataType: 'json',
+                        data:{
+                            page:page,
+                            page_num:20
+                        },
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.err)
+                            {
+                                layer.msg(response.err, {icon: 5, time: 2000})
+                                return
+                            }
+                            self.cur=response.page
+                            self.all=response.total_page
+                            self.total=response.total_num
+                            self.datas=response.datas||[]
+                        },
+                        error:function(){
+                    
+                        },
+                    })
+                }
+            }
+        });
+    </script>
+    <% include modules/admin/view/common/footer.cshtml %>

@@ -1,0 +1,137 @@
+﻿    <% include modules/admin/view/common/header.cshtml %>
+    <% include modules/admin/view/common/loading_container.cshtml %>
+    <% include modules/admin/view/common/nav_bar.cshtml %>
+    <!-- Main Container -->
+    <div class="main-container container-fluid" style="height:-webkit-calc(100% - 80px);height:-moz-calc(100% - 80px); height:calc(100% - 80px);" id="app">
+        <!-- Page Container -->
+        <div class="page-container" style="height: 100%">
+            <!-- Page Sidebar -->
+            <div class="page-sidebar" id="sidebar">
+                <!-- Page Sidebar Header-->
+                <div class="sidebar-header-wrapper">
+                    <input type="text" class="searchinput" />
+                    <i class="searchicon fa fa-search"></i>
+                    <div class="searchhelper">搜索 报告, 图标, 邮件 或者 通知</div>
+                </div>
+                <!-- /Page Sidebar Header -->
+                <!-- Sidebar Menu -->
+                <ul class="nav sidebar-menu">
+                    <!--Dashboard-->
+                    <li v-for="(page,index) in pages" v-bind:class="{active:isSelected(index),open:isSelected(index)}">
+                        <a :href="'#'+index+'_'+0" @click="goto(index,0)" v-if="!page.sub_pages">
+                            <i :class="page.class"></i>
+                            <span class="menu-text"> {{page.title}} </span>
+                        </a>
+                        <a href="#" class="menu-dropdown" v-if="page.sub_pages">
+                            <i :class="page.class"></i>
+                            <span class="menu-text"> {{page.title}} </span>
+
+                            <i class="menu-expand"></i>
+                        </a>
+                        <ul class="submenu" v-if="page.sub_pages">
+                            <li v-for="(p,i) in page.sub_pages" v-bind:class="{active:isSub(index,i)}">
+                                <a :href="'#'+index+'_'+i" @click="goto(index,i)">
+                                    <span class="menu-text">{{p.title}}</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <!-- /Sidebar Menu -->
+            </div>
+            <!-- /Page Sidebar -->
+            <!-- Page Content -->
+            <div class="page-content" style="position: relative;height: 100%">
+                <div>
+                    <!-- Page Breadcrumb -->
+                    <div class="page-breadcrumbs">
+                        <ul class="breadcrumb">
+                            <li>
+                                <i class="fa fa-home"></i>
+                                <a href="#">主页</a>
+                            </li>
+                            <li>
+                                <a href="#">{{pages[index].title}}</a>
+                            </li>
+                            <li class="active" v-if="pages[index].sub_pages">{{pages[index].sub_pages[sub_index].title}}</li>
+                        </ul>
+                    </div>
+                    <!-- /Page Breadcrumb -->
+                    <!-- Page Header -->
+                    <div class="page-header position-relative">
+                        <div class="header-title">
+                            <h1>
+                                {{pages[index].title}}
+                                <small v-if="pages[index].sub_pages">
+                                    <i class="fa fa-angle-right"></i>
+                                    {{pages[index].sub_pages[sub_index].title}}
+                                </small>
+                            </h1>
+                        </div>
+                        <!--Header Buttons-->
+                        <div class="header-buttons">
+                            <a class="sidebar-toggler" href="#">
+                                <i class="fa fa-arrows-h"></i>
+                            </a>
+                            <a class="refresh" id="refresh-toggler" href="">
+                                <i class="glyphicon glyphicon-refresh"></i>
+                            </a>
+                            <a class="fullscreen" id="fullscreen-toggler" href="#">
+                                <i class="glyphicon glyphicon-fullscreen"></i>
+                            </a>
+                        </div>
+                        <!--Header Buttons End-->
+                    </div>
+                </div>
+                <link href="/statics/module/bbadmin/css/admin.css" rel="stylesheet" />
+                <iframe :src="pages[index].src" class="bbadmin-iframe" v-if="!pages[index].sub_pages"></iframe>
+                <iframe :src="pages[index].sub_pages[sub_index].src" class="bbadmin-iframe" v-if="pages[index].sub_pages"></iframe>
+                <script src="/statics/module/bbadmin/lib/pages.js"></script>
+                <script>
+                    let url = window.location.href
+                    let start=url.lastIndexOf("#")
+                    let index=0
+                    let sub_index=0
+                    if(start>0)
+                    {
+                        let str = url.substr(start+1)
+                        let strs=str.split("_")
+                        if(strs.length==2)
+                        {
+                            index=parseInt(strs[0])||0
+                            sub_index=parseInt(strs[1])||0
+                        }
+                    }
+                    let vue_app=new Vue({
+                        el: '#app',
+                        data: 
+                        {
+                            pages:pages,
+                            index:index,
+                            sub_index:sub_index
+                        },
+                        methods:
+                        {
+                            goto:function(index,sub_index)
+                            {
+                                this.index = index
+                                this.sub_index=sub_index
+                            },
+                            isSub:function (sel,sub_sel)
+                            {
+                                return sel==this.index&&sub_sel==this.sub_index
+                            },
+                            isSelected:function (sel)
+                            {
+                                return sel==this.index
+                            }
+                        }
+                    })
+                </script>
+            </div>
+            <!-- /Page Content -->
+        </div>
+        <!-- /Page Container -->
+    </div>
+    <!-- Main Container -->
+    <% include modules/admin/view/common/footer.cshtml %>

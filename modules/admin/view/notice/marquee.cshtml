@@ -1,0 +1,401 @@
+﻿<% include modules/admin/view/common/header.cshtml %>
+<% include modules/admin/view/common/loading_container.cshtml %>
+<!-- Page Body -->
+<div id="app" class="page-body">
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div class="widget">
+                <div class="widget-header ">
+                    <span class="widget-caption">跑马灯列表</span>
+                    <div class="widget-buttons">
+                        <a href="#" data-toggle="maximize">
+                            <i class="fa fa-expand"></i>
+                        </a>
+                        <a href="#" data-toggle="collapse">
+                            <i class="fa fa-minus"></i>
+                        </a>
+                        <a href="#" data-toggle="dispose">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="widget-body">
+                <div style="margin:10px">
+                    <button class="btn   purple" type="button" @click="addMarquee()"><i class="fa fa-plus"></i> 新增</button>
+                </div>
+                <table id="tb_room_list" class="table table-bordered table-striped">
+                    <thead>
+                        <th>跑马灯id</th>
+                        <th>标题备注</th>
+                        <th>内容</th>
+                        <th>生效开始时间</th>
+                        <th>结束时间</th>
+                        <th>创建时间</th>
+                        <th>操作<th>
+                    </thead>
+                    <tbody>
+                        <tr v-for="mq in mq_list">
+                            <td>{{mq.id}}</td>
+                            <td>{{mq.title}}</td>
+                            <td>{{mq.content}}</td>
+                            <td>{{convertTime(mq.start_time)}}</td>
+                            <td>{{convertTime(mq.end_time)}}</td>
+                            <td>{{convertTime(mq.create_time)}}</td>
+                            <td>
+                                <a href="#" class="btn btn-info btn-xs edit" @click="updateMarquee(mq)"><i class="fa fa-edit"></i> 编辑</a>
+                                <a href="#" class="btn btn-danger btn-xs delete" @click="removeMarquee(mq.id)"><i class="fa fa-trash-o"></i> 删除</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Page Body -->
+
+<!--Page Related Scripts-->
+<script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+<script src="/statics/js/datatable/jquery.dataTables.min.js"></script>
+<script src="/statics/js/datatable/ZeroClipboard.js"></script>
+<script src="/statics/js/datatable/dataTables.tableTools.min.js"></script>
+<script src="/statics/js/datatable/dataTables.bootstrap.min.js"></script>
+
+<script type="text/javascript">
+    var mq_list_vm = new Vue({
+        el: '#app',
+        data: 
+        {
+            mq_list:[],
+        },
+        created()
+        {
+            let self = this
+            $.ajax({
+                type: "POST",
+                url: "/notice/marqueeList",
+                dataType: 'json',
+                data:{},
+                xhrFields: {
+                    withCredentials: true
+                },
+                crossDomain: true,
+                success:function(response)
+                {
+                    self.mq_list=response.mq_list||[]
+                },
+                error:function(){
+            
+                },
+            })
+        },
+        methods: 
+        {
+            convertTime:function(time)
+            {
+                if(!time||time<0)
+                {
+                    return ""
+                }
+                return moment(time).format('YYYY-M-D H:mm:ss')
+            },
+            addMarquee:function()
+            {
+                vm_op.initMarquee(true)
+                layer.open({
+                    type: 1,
+                    title: '跑马灯-新增跑马灯',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_marquee')
+                });
+            },
+            updateMarquee:function(mq)
+            {
+                vm_op.initMarquee(false,mq)
+                layer.open({
+                    type: 1,
+                    title: '跑马灯-修改跑马灯',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_marquee')
+                });
+            },
+            removeMarquee:function(mq_id)
+            {
+                let self = this
+                layer.open({
+                    title: '跑马灯-删除跑马灯',
+                    btn: ['确认'],
+                    btnAlign: 'c',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['200px' , '170px'],
+                    content: "确认删除跑马灯id号("+mq_id+")?",
+                    yes: function(index, layero){
+                        $.ajax({
+                            type: "POST",
+                            url: "/notice/RemoveMarquee",
+                            dataType: 'json',
+                            data:JSON.stringify({id:mq_id}),
+                            xhrFields: {
+                                withCredentials: true
+                            },
+                            crossDomain: true,
+                            success:function(response)
+                            {
+                                if(response.err)
+                                {
+                                    layer.msg(response.err, {icon: 5, time: 2000})
+                                    return
+                                }
+                                else
+                                {
+                                    for(let i=0;i<self.mq_list.length;++i)
+                                    {
+                                        let r = self.mq_list[i]
+                                        if(r.id==response.id)
+                                        {
+                                            self.mq_list.splice(i,1)
+                                            break
+                                        }
+                                    }
+                                    layer.close(index)
+                                    layer.msg("删除成功", {icon: 1, time: 2000})
+                                }
+                            },
+                            error:function(err){
+                                layer.msg("请求错误", {icon: 5, time: 2000})
+                            },
+                        })
+                    }
+                });
+            }
+        }
+    });
+</script>
+
+<div>
+    <div id="custom">
+        <div id="id_marquee" style="display: none;padding:50px;padding-top:20px;padding-bottom:10px">
+            <table id="tb_marquee_list" class="table table-bordered table-striped">
+                <tbody>
+                    <tr v-if="!is_add">
+                        <td>跑马灯id</td>
+                        <td>
+                            <input type="number" step="1" class="form-control" v-model="id" disabled="disabled">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>标题备注</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="title">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>内容</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="content">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>生效开始时间</td>
+                        <td>
+                            <div class="input-group">
+                                <input class="form-control date-picker" id="id_start_time" type="text">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>生效截止时间</td>
+                        <td>
+                            <div class="input-group">
+                                <input class="form-control" id="id_end_time" type="text">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size:90%;color:#c7254e;background-color:#f9f2f4;margin-top:5px">注：结束时间为空表示生效一次，且立即生效</p>
+            <div style="text-align:center;padding-top:10px">
+                <button v-if="is_add" class="btn shiny btn-primary " type="button" @click="addMarquee">新增跑马灯</button>
+                <button v-if="!is_add" class="btn shiny btn-primary " type="button" @click="updateMarquee">修改跑马灯</button>
+            </div>
+        </div>
+    </div>
+    <script src="/statics/js/datetime/bootstrap-datetimepicker.min.js"></script>
+    <link href="/statics/css/bootstrap/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    <script type="text/javascript">
+        $(function () {
+            let now = new Date()
+            $('#id_start_time').datetimepicker({
+                minDate:"1000-1-1",
+                dayViewHeaderFormat:"YYYY年 MMMM",
+                locale : 'zh-cn',
+                zIndex:20190813
+            });
+            $('#id_end_time').datetimepicker({
+                minDate:"1000-1-1",
+                dayViewHeaderFormat:"YYYY年 MMMM",
+                locale : 'zh-cn',
+                zIndex:20190813
+            });
+        });
+        var vm_op = new Vue({
+            el: '#custom',
+            data: 
+            {
+                is_add:false,
+                id:0,
+                title:"",
+                content:"",
+                start_time:null,
+                end_time:null
+            },
+            methods: 
+            {
+                initMarquee:function(is_add,mq)
+                {
+                    if(!mq)
+                    {
+                        mq={}
+                    }
+                    this.is_add=is_add
+                    this.id=mq.id||0
+                    this.title=mq.title||""
+                    this.content=mq.content||""
+                    $("#id_start_time").val("")
+                    $("#id_end_time").val("")
+                    if(mq.start_time)
+                    {
+                        $("#id_start_time").val(moment(mq.start_time).format("YYYY/M/D H:m"))
+                    }
+                    if(mq.end_time)
+                    {
+                        $("#id_end_time").val(moment(mq.end_time).format("YYYY/M/D H:m"))
+                    }
+                },
+                addMarquee:function()
+                {
+                    let str_start_time =$('#id_start_time').val()
+                    let start_time = (new Date(str_start_time).getTime())||0
+                    let str_end_time =$('#id_end_time').val()
+                    let end_time = (new Date(str_end_time).getTime())||0
+
+                    let mq=
+                    {
+                        title:this.title,
+                        content:this.content,
+                        start_time:start_time,
+                        end_time:end_time
+                    }
+                    if(!mq.content||!mq.start_time)
+                    {
+                        layer.msg("起始时间和内容不能为空", {icon: 5, time: 2000});
+                        return
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/notice/addmarquee",
+                        dataType: 'json',
+                        data:JSON.stringify(mq),
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.err)
+                            {
+                                layer.msg(response.err, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                mq_list_vm.mq_list.unshift(response.mq)
+                                layer.closeAll()
+                                layer.msg("跑马灯添加成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                },
+                updateMarquee:function()
+                {
+                    let str_start_time =$('#id_start_time').val()
+                    let start_time = (new Date(str_start_time).getTime())||0
+                    let str_end_time =$('#id_end_time').val()
+                    let end_time = (new Date(str_end_time).getTime())||0
+
+                    let mq=
+                    {
+                        id:this.id,
+                        title:this.title,
+                        content:this.content,
+                        start_time:start_time,
+                        end_time:end_time
+                    }
+                    if(!mq.content||!mq.start_time)
+                    {
+                        layer.msg("起始时间和内容不能为空", {icon: 5, time: 2000});
+                        return
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/notice/updateMarquee",
+                        dataType: 'json',
+                        data:JSON.stringify(mq),
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.err)
+                            {
+                                layer.msg(response.err, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                for(let i=0;i<mq_list_vm.mq_list.length;++i)
+                                {
+                                    let r = mq_list_vm.mq_list[i]
+                                    if(r.id==response.mq.id)
+                                    {
+                                        mq_list_vm.mq_list[i]=response.mq
+                                        break
+                                    }
+                                }
+                                layer.closeAll()
+                                mq_list_vm.mq_list.sort((a,b)=>
+                                {
+                                    return b.id-a.id
+                                })
+                                layer.msg("跑马灯更新成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                }
+            }
+        });
+    </script>
+</div>
+<% include modules/admin/view/common/footer.cshtml %>

@@ -1,0 +1,633 @@
+﻿    <% include modules/admin/view/common/header.cshtml %>
+    <% include modules/admin/view/common/loading_container.cshtml %>
+    <script src="/statics/custom/vue-page.js"></script>
+    <!-- Page Body -->
+    <div id="app" class="page-body">
+        <div class="row">
+            <div class="col-xs-12 col-md-12">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">服务器</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <div style="margin:10px">
+                            <button class="btn   purple" type="button" @click="add()"><i class="fa fa-plus"></i> 新增</button>
+                        </div>
+                        <table id="tb_match_list" class="table table-bordered table-striped">
+                            <thead>
+                            <tr style="font-size: 14px;">
+                                <th>id</th>
+                                <th>名称</th>
+                                <th>所属俱乐部</th>
+                                <th>循环方式</th>
+                                <th>盲注id</th>
+                                <th>初始金币</th>
+                                <th>比赛开始时间</th>
+                                <th>报名花费</th>
+                                <th>奖励</th>
+                                <th>截止重入级别</th>
+                                <th>重入次数</th>
+                                <th>结束人数</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="match in matches">
+                                    <td>{{match.id}}</td>
+                                    <td>{{match.name}}</td>
+                                    <td>{{getClubName(match.club_id)}}</td>
+                                    <td>
+                                        <p v-if="match.looptype==0">不循环</p>
+                                        <p v-if="match.looptype==1">每日</p>
+                                        <p v-if="match.looptype==2">每周</p>
+                                    </td>
+                                    <td>{{match.blind_id}}</td>
+                                    <td>{{match.coin}}</td>
+                                    <td>{{convertTime(match.match_starttime)}}</td>
+                                    <td>{{getSignupCost(match.signup_cost)}}</td>
+                                    <td>
+                                        <p v-if="match.dynamic_reward==1">基础动态奖励</p>
+                                        <p v-else-if="match.dynamic_reward==2">高级动态奖励</p>
+                                        <p v-else>...</p>
+                                    </td>
+                                    <td>{{match.reenter_blind_index}}</td>
+                                    <td>{{match.reenter_count}}</td>
+                                    <td>{{match.end_player}}</td>
+                                    <td>
+                                        <span v-if="match.open>0">开放</span>
+                                        <span v-else>暂未开放</span>
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-danger btn-xs delete" @click="remove(match.id)"><i class="fa fa-trash-o"></i> 删除</a>
+                                        <a href="#" class="btn btn-danger btn-xs edit" @click="modify(match)"><i class="fa fa-edit"></i> 修改</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+
+                        <div class="row">
+                        <div class="col-sm-5"></div>
+                        <div class="col-sm-7">
+                            <vue-nav :cur="cur" :all="all" :url="url" :total="total" :jump_cb="onPage"></vue-nav>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Body -->
+
+<!--Page Related Scripts-->
+<script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+<script src="/statics/js/datatable/jquery.dataTables.min.js"></script>
+<script src="/statics/js/datatable/ZeroClipboard.js"></script>
+<script src="/statics/js/datatable/dataTables.tableTools.min.js"></script>
+<script src="/statics/js/datatable/dataTables.bootstrap.min.js"></script>
+<script src="/statics/js/datetime/bootstrap-datetimepicker.min.js"></script>
+<link href="/statics/css/bootstrap/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<script type="text/javascript">
+    var vm_match_list = new Vue({
+        el: '#app',
+        data: 
+        {
+            matches:[],
+            cur: 0,
+            all: 0,
+            total: 0,
+            url:window.location.href,
+            clubs:[]
+        },
+        components:
+        {
+            'vue-nav': Vnav
+        },
+        created()
+        {
+            this.updateDates(0)
+        },
+        methods:
+        {
+            add()
+            {
+                vm_op.init(true)
+                layer.open({
+                    type: 1,
+                    title: '比赛-新增比赛',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['800px' , '570px'],
+                    content: $('#id_match')
+                });
+            },
+            getSignupCost(signup_cost)
+            {
+                if(!signup_cost)
+                {
+                    return ""
+                }
+                var str=""
+                for(let i=0;i<signup_cost.length;++i)
+                {
+                    if(signup_cost[i].id==-99)
+                    {
+                        str+=signup_cost[i].count+"积分"
+                    }
+                }
+                return str
+            },
+            remove(match_id)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/match/remove",
+                    dataType: 'json',
+                    data:{
+                        match_id:match_id,
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.errcode)
+                        {
+                            layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            return
+                        }
+                        for(let i=0;i<self.matches.length;++i)
+                        {
+                            let s = self.matches[i]
+                            if(s.id==match_id)
+                            {
+                                self.matches.splice(i,1)
+                                break
+                            }
+                        }
+                        layer.msg("删除成功", {icon: 1, time: 2000})
+                    },
+                    error:function(){
+                
+                    },
+                })
+            },
+            modify(match)
+            {
+                vm_op.init(false,match)
+                layer.open({
+                    type: 1,
+                    title: '比赛-修改比赛',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['800px' , '570px'],
+                    content: $('#id_match')
+                });
+            },
+            convertTime:function(time)
+            {
+                return moment(time).format('YYYY-M-D H:mm:ss')
+            },
+            getClubName(club_id)
+            {
+                for(let i=0;i<this.clubs.length;++i)
+                {
+                    let club = this.clubs[i]
+                    if(club.id==club_id)
+                    {
+                        return club.name
+                    }
+                }
+                return club_id
+            },
+            onPage:function(page)
+            {
+                this.updateDates(page-1)
+            },
+            updateDates:function(page)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/match/matchlist",
+                    dataType: 'json',
+                    data:JSON.stringify({
+                        page:page
+                    }),
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                            return
+                        }
+                        self.cur=response.page
+                        self.all=response.total_page
+                        self.total=response.count
+                        self.matches=response.matches||[]
+                        self.matches.sort((a,b)=>
+                        {
+                            return b.id-a.id
+                        })
+                    },
+                    error:function(){
+                
+                    },
+                })
+            
+                $.ajax({
+                    type: "POST",
+                    url: "/club/clublist",
+                    dataType: 'json',
+                    data:JSON.stringify({
+                        page:page
+                    }),
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                            return
+                        }
+                        self.clubs=response.clubs||[]
+                    },
+                    error:function(){
+                
+                    },
+                })
+            }
+        }
+    });
+</script>
+<div>
+    <div id="custom">
+        <div id="id_match" style="display: none;padding:50px;padding-top:20px;padding-bottom:10px">
+            <table id="tb_bulletin_list" class="table table-bordered table-striped">
+                <tbody>
+                    <tr v-if="!is_add">
+                        <td>赛事id</td>
+                        <td>
+                            <input type="number" step="1" class="form-control" v-model="id" :disabled="true">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>赛事名称</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="name">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>俱乐部id</td>
+                        <td>
+                            <input type="number" step="1" class="form-control" v-model="club_id">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>赛事图标</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="icon">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>盲注id</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="blind_id">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>初始金币</td>
+                        <td>
+                            <input type="number" class="form-control" v-model="coin">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>开赛时间</td>
+                        <td>
+                            <div class="input-group" id="match_starttime" style="width: 180px">
+                                <input class="form-control date-picker" id="id_match_starttime" type="text" v-model="match_starttime">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>循环方式</td>
+                        <td>
+                            <div class="control-group">
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="looptype-radio" type="radio" class="colored-blue" value="1" v-model="looptype"/>
+                                            <span class="text">每日循环</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="looptype-radio" type="radio" class="colored-danger" value="0" v-model="looptype"/>
+                                            <span class="text">不循环</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>报名费用</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="signup_cost">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>赛事奖励</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="reward">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>动态奖励</td>
+                        <td>
+                            <div class="control-group">
+                                <div class="col-lg-4 col-sm-4 col-xs-4">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="dynamic-radio" type="radio" class="colored-blue" value="2" v-model="dynamic_reward">
+                                            <span class="text">高级动态奖励</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-sm-4 col-xs-4">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="dynamic-radio" type="radio" class="colored-blue" value="1" v-model="dynamic_reward">
+                                            <span class="text">基础动态奖励</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-sm-4 col-xs-4">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="dynamic-radio" type="radio" class="colored-danger" value="0" v-model="dynamic_reward">
+                                            <span class="text">固定奖励</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>截止重入级别</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="reenter_blind_index">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>重入次数</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="reenter_count">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>结束人数</td>
+                        <td>
+                            <input type="number" class="form-control" v-model="end_player">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>开放状态</td>
+                        <td>
+                            <div class="control-group">
+                                <div class="col-lg-3 col-sm-3 col-xs-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="open-radio" type="radio" class="colored-blue" value="1" v-model="open">
+                                            <span class="text">开放</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-sm-3 col-xs-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="open-radio" type="radio" class="colored-danger" value="0" v-model="open">
+                                            <span class="text">关闭</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="text-align:center;padding-top:10px">
+                <button v-if="is_add" class="btn shiny btn-primary " type="button" @click="add">新增比赛配置</button>
+                <button v-if="!is_add" class="btn shiny btn-primary " type="button" @click="update">修改比赛配置</button>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(function(){
+            $('#id_match_starttime').datetimepicker({
+                minDate:"2022-11-8",
+                dayViewHeaderFormat:"YYYY年 MMMM",
+                locale : 'zh-cn',
+                zIndex:20190813
+            });
+        })
+        var vm_op = new Vue({
+            el: '#custom',
+            data: 
+            {
+                is_add:false,
+                id:0,
+                club_id:-1,
+                dynamic_reward:0,
+                name:"",
+                icon:"",
+                looptype:0,
+                blind_id:0,
+                coin:0,
+                match_starttime:0,
+                signup_cost:"",
+                reward:"",
+                reenter_blind_index:0,
+                reenter_count:0,
+                open:0,
+                end_player:1
+            },
+            methods: 
+            {
+                init:function(is_add,match)
+                {
+                    if(!match)
+                    {
+                        match={}
+                    }
+                    this.is_add=is_add
+                    this.id=match.id||0
+                    this.dynamic_reward=match.dynamic_reward||0
+                    this.club_id=match.club_id||-1
+                    this.name=match.name||""
+                    this.icon=match.icon||""
+                    this.looptype=match.looptype||0
+                    this.blind_id=match.blind_id||1
+                    this.coin=match.coin||10000
+                    let time = match.match_starttime||0
+                    if(is_add)
+                    {
+                        time=Date.now()
+                    }
+                    this.match_starttime=moment(time).format('YYYY-M-D H:mm:ss')
+                    this.signup_cost=JSON.stringify(match.signup_cost||[])
+                    this.reward=JSON.stringify(match.reward||[])
+                    this.reenter_blind_index=match.reenter_blind_index||10
+                    this.reenter_count=match.reenter_count||5
+                    this.open=match.open||0
+                    this.end_player=match.end_player||1
+                },
+                add:function()
+                {
+                    let str_match_starttime =$('#id_match_starttime').val()
+                    let match_starttime = new Date(str_match_starttime).getTime()||null
+                    let match=
+                    {
+                        match:{
+                            id:this.id,
+                            club_id:this.club_id,
+                            dynamic_reward:this.dynamic_reward,
+                            name:this.name,
+                            icon:this.icon,
+                            looptype:this.looptype,
+                            blind_id:this.blind_id,
+                            coin:this.coin,
+                            match_starttime:match_starttime,
+                            signup_cost:JSON.parse(this.signup_cost),
+                            reward:JSON.parse(this.reward),
+                            reenter_blind_index:this.reenter_blind_index,
+                            reenter_count:this.reenter_count,
+                            open:this.open,
+                            end_player:this.end_player
+                        }
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/match/add",
+                        dataType: 'json',
+                        data:match,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.errcode)
+                            {
+                                layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                vm_match_list.matches.unshift(response.match)
+                                layer.closeAll()
+                                layer.msg("服务器添加成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                },
+                update:function()
+                {
+                    let str_match_starttime =$('#id_match_starttime').val()
+                    let match_starttime = new Date(str_match_starttime).getTime()||null
+                    let match=
+                    {
+                        match:{
+                            id:this.id,
+                            club_id:this.club_id,
+                            dynamic_reward:this.dynamic_reward,
+                            name:this.name,
+                            icon:this.icon,
+                            looptype:this.looptype,
+                            blind_id:this.blind_id,
+                            coin:this.coin,
+                            match_starttime:match_starttime,
+                            signup_cost:JSON.parse(this.signup_cost),
+                            reward:JSON.parse(this.reward),
+                            reenter_blind_index:this.reenter_blind_index,
+                            reenter_count:this.reenter_count,
+                            open:this.open,
+                            end_player:this.end_player
+                        }
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/match/update",
+                        dataType: 'json',
+                        data:match,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.errcode)
+                            {
+                                layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                for(let i=0;i<vm_match_list.matches.length;++i)
+                                {
+                                    let r = vm_match_list.matches[i]
+                                    if(r.id==response.match.id)
+                                    {
+                                        vm_match_list.matches[i]=response.match
+                                        break
+                                    }
+                                }
+                                layer.closeAll()
+                                vm_match_list.matches.sort((a,b)=>
+                                {
+                                    return b.id-a.id
+                                })
+                                layer.msg("服务器更新成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                }
+            }
+        });
+    </script>
+</div>
+    <% include modules/admin/view/common/footer.cshtml %>

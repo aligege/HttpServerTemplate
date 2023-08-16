@@ -1,0 +1,13 @@
+@charset "gb2312";
+/* CSS Document */
+
+body{ font-family:Microsoft Yahei,helvetica,arial; color:#505050; background:#fff; margin:0 auto; padding:0; margin:0; margin:0 auto; min-width:320px; font-size:16px; -webkit-text-size-adjust:none;}
+p,ul,ol,dl,dt,dd,h1,h2,h3,h4,h5,h6,form,input,select,button,textarea,iframe{margin:0; padding:0;}
+body,html{-webkit-text-size-adjust:none;}
+article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block;}
+video embed,video object,video iframe,video{width:100%;height:auto;}
+img{border:0 none;vertical-align:top;max-width:100%;height:auto;width:auto\9;-ms-interpolation-mode:bicubic;}
+ul,li{list-style-type:none;}
+h1,h2,h3,h4,h5,h6{font-size:100%}
+a{ text-decoration:none;}
+i,em,cite{font-style:normal;}

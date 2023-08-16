@@ -1,0 +1,49 @@
+    <% include modules/admin/view/common/header.cshtml %>
+    <% include modules/admin/view/common/loading_container.cshtml %>
+    <!-- Page Body -->
+    <div class="page-body">
+        <div class="row">
+            <div class="col-xs-12 col-md-12 col-lg-12">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">看有效广告统计</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <div id="area-chart-register" class="chart chart-lg"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Body -->
+
+    <!--Page Related Scripts-->
+    <script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+    <script src="/statics/js/charts/morris/morris.js"></script>
+    <script src="/statics/js/charts/morris/morris-init.js"></script>
+
+    <script type="text/javascript">
+        $(window).bind("load", function () {
+
+            /*Sets Themed Colors Based on Themes*/
+            themeprimary = getThemeColorFromCss('themeprimary');
+            themesecondary = getThemeColorFromCss('themesecondary');
+            themethirdcolor = getThemeColorFromCss('themethirdcolor');
+            themefourthcolor = getThemeColorFromCss('themefourthcolor');
+            themefifthcolor = getThemeColorFromCss('themefifthcolor');
+
+            InitiateAreaChartAd.init("system/GetAd");
+        });
+    </script>
+    <% include modules/admin/view/common/footer.cshtml %>

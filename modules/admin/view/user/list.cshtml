@@ -1,0 +1,432 @@
+﻿    <% include modules/admin/view/common/header.cshtml %>
+    <% include modules/admin/view/common/loading_container.cshtml %>
+    <script src="/statics/custom/vue-page.js"></script>
+    <!-- Page Body -->
+    <div id="app" class="page-body">
+        <div class="row">
+            <div class="col-xs-12 col-md-12">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">条件筛选</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <table id="tb_cr_list" class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <td style="text-align: right;">用户id</td>
+                                    <td>
+                                        <input type="number" class="form-control" id="user_id" placeholder="" style="width: 180px" v-model="user_id">
+                                    </td>
+                                    <td style="text-align: right;">注册起始时间</td>
+                                    <td>
+                                        <div class="input-group" id="start_time" style="width: 180px">
+                                            <input class="form-control date-picker" id="id_start_time" type="text" v-model="start_time">
+                                            <span class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        注册截止时间
+                                    </td>
+                                    <td>
+                                        <div class="input-group col-sm-3" id="end_time" style="width: 180px">
+                                            <input class="form-control date-picker" id="id_end_time"  type="text" v-model="end_time">
+                                            <span class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: right" colspan="5">
+                                    </td>
+                                    <td style="padding-top: 20px">
+                                        <a href="#" style="padding: 7px 12px;background-color: #00a7d0;border-radius:3px;text-align:center;color: #fff;display: inline-block;cursor:pointer;position: relative;top: 1px;" @click="onRest()">重  置</a>
+                                        <button class="btn shiny btn-primary " type="button" @click="onPage(cur)">搜  索</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-md-12">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">用户</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <table id="tb_user_list" class="table table-bordered table-striped">
+                            <thead>
+                            <tr style="font-size: 14px;">
+                                <th>id</th>
+                                <th>用户名</th>
+                                <th>用户组</th>
+                                <th>积分</th>
+                                <th>身份证号</th>
+                                <th>注册时间</th>
+                                <th>最近登陆时间</th>
+                                <th>最近登陆ip</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="user in users">
+                                    <td>{{user.id}}</td>
+                                    <td>{{user.nickname}}</td>
+                                    <td>
+                                        <span v-if="user.role_group==1">创始人</span>
+                                        <span v-if="user.role_group==2">管理员</span>
+                                        <span v-if="user.role_group==3">代理</span>
+                                        <span v-if="user.role_group==4">用户</span>
+                                    </td>
+                                    <td>{{user.coin}}</td>
+                                    <td>{{user.idcard_no}}</td>
+                                    <td>{{convertTime(user.create_time)}}</td>
+                                    <td>{{convertTime(user.login_time)}}</td>
+                                    <td>{{user.login_ip}}</td>
+                                    <td>
+                                        <!-- <a href="#" v-if="user.state>=0" class="btn btn-info btn-xs edit" @click="updateState(user.id,-1)"><i class="fa fa-edit"></i> 封禁</a>
+                                        <a href="#" v-if="user.state<0" class="btn btn-info btn-xs edit" @click="updateState(user.id,1)"><i class="fa fa-edit"></i> 解封</a> -->
+                                        <!-- <a href="#" class="btn btn-danger btn-xs delete" @click="onKickOut(user.account_id)"><i class="fa fa-trash-o"></i> 踢下线</a> -->
+                                        <a href="#" class="btn btn-primary btn-xs edit" @click="onVerify(user)"><i class="fa fa-edit"></i> 手动认证</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+
+                        <div class="row">
+                        <div class="col-sm-5"></div>
+                        <div class="col-sm-7">
+                            <vue-nav :cur="cur" :all="all" :url="url" :total="total" :jump_cb="onPage"></vue-nav>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Body -->
+
+<!--Page Related Scripts-->
+<script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+<script src="/statics/js/datatable/jquery.dataTables.min.js"></script>
+<script src="/statics/js/datatable/ZeroClipboard.js"></script>
+<script src="/statics/js/datatable/dataTables.tableTools.min.js"></script>
+<script src="/statics/js/datatable/dataTables.bootstrap.min.js"></script>
+<script src="/statics/js/datetime/bootstrap-datetimepicker.min.js"></script>
+<link href="/statics/css/bootstrap/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<script type="text/javascript">
+    $(function(){
+        $('#id_start_time').datetimepicker({
+            minDate:"1000-1-1",
+            dayViewHeaderFormat:"YYYY年 MMMM",
+            locale : 'zh-cn',
+            zIndex:20190813
+        });
+        $('#id_end_time').datetimepicker({
+            minDate:"1000-1-1",
+            dayViewHeaderFormat:"YYYY年 MMMM",
+            locale : 'zh-cn',
+            zIndex:20190813
+        });
+    })
+    var vm = new Vue({
+        el: '#app',
+        data: 
+        {
+            user_id:null,
+            start_time:null,
+            end_time:null,
+            users:[],
+            cur: 0,
+            all: 0,
+            total: 0,
+            url:window.location.href
+        },
+        components:
+        {
+            'vue-nav': Vnav
+        },
+        created()
+        {
+            this.updateDates(0)
+        },
+        methods:
+        {
+            onVerify(user)
+            {
+                vm_op.init(user)
+                layer.open({
+                    type: 1,
+                    title: '用户-认证',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_item')
+                });
+            },
+            updateState(user_id,state)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/user/updatestate",
+                    dataType: 'json',
+                    data:{
+                        user_id:user_id,
+                        state:state
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                            return
+                        }
+                        for(let i=0;i<self.users.length;++i)
+                        {
+                            let u = self.users[i]
+                            if(u.id==user_id)
+                            {
+                                u.state = state
+                                break
+                            }
+                        }
+                        if(state==1)
+                        {
+                            layer.msg("解封成功", {icon: 1, time: 2000})
+                        }
+                        else
+                        {
+                            layer.msg("封禁成功", {icon: 1, time: 2000})
+                        }
+                    },
+                    error:function(){
+                
+                    },
+                })
+            },
+            onKickOut(account_id)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/user/kickout",
+                    dataType: 'json',
+                    data:JSON.stringify({
+                        account_id:account_id
+                    }),
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                            return
+                        }
+                        layer.msg("踢人结束", {icon: 1, time: 2000})
+                    },
+                    error:function(){
+                
+                    },
+                })
+            },
+            convertTime:function(time)
+            {
+                return moment(time).format('YYYY-M-D H:mm:ss')
+            },
+            updateProxy:function(pre_user_id)
+            {
+                this.pre_user_id=pre_user_id
+                this.onPage(this.cur)
+            },
+            onRest:function()
+            {
+                this.pre_user_id=null
+                this.user_id=null
+                this.start_time=null
+                this.end_time=null
+                this.onPage(1)
+            },
+            onPage:function(page)
+            {
+                this.updateDates(page-1)
+            },
+            updateDates:function(page)
+            {
+                let str_start_time =$('#id_start_time').val()
+                let start_time = new Date(str_start_time).getTime()||null
+                let str_end_time =$('#id_end_time').val()
+                let end_time = new Date(str_end_time).getTime()||null
+
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/user/list",
+                    dataType: 'json',
+                    data:{
+                        page:page,
+                        page_num:20,
+                        user_id:self.user_id,
+                        start_time:start_time,
+                        end_time:end_time
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                            return
+                        }
+                        self.cur=response.page
+                        self.all=response.total_page
+                        self.total=response.total_num
+                        self.users=response.users||[]
+                    },
+                    error:function(){
+                
+                    },
+                })
+            }
+        }
+    });
+</script>
+<div>
+    <div id="custom">
+        <div id="id_item" style="display: none;padding:50px;padding-top:20px;padding-bottom:10px">
+            <table id="tb_item_list" class="table table-bordered table-striped">
+                <tbody>
+                    <tr>
+                        <td>用户ID</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="id" :disabled="true" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>用户名</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="nickname" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>身份证号</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="idcard_no" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="text-align:center;padding-top:10px">
+                <button class="btn shiny btn-primary " type="button" @click="update">手动认证</button>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var vm_op = new Vue({
+            el: '#custom',
+            data: 
+            {
+                id:"",
+                nickname:"",
+                idcard_no:""
+            },
+            methods: 
+            {
+                init:function(user)
+                {
+                    this.id=user.id
+                    this.nickname=user.nickname
+                    this.idcard_no=user.idcard_no
+                },
+                update:function()
+                {
+                    let item=
+                    {
+                        user:{
+                            id:this.id,
+                            nickname:this.nickname,
+                            idcard_no:this.idcard_no
+                        }
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/user/verify",
+                        dataType: 'json',
+                        data:item,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.errcode)
+                            {
+                                layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                for(let i=0;i<vm.users.length;++i)
+                                {
+                                    let r = vm.users[i]
+                                    if(r.id==response.user.id)
+                                    {
+                                        let it = vm.users[i]
+                                        it.nickname=response.user.nickname
+                                        it.idcard_no=response.user.idcard_no
+                                        break
+                                    }
+                                }
+                                layer.closeAll()
+                                layer.msg("手动认证成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                }
+            }
+        });
+    </script>
+</div>
+    <% include modules/admin/view/common/footer.cshtml %>

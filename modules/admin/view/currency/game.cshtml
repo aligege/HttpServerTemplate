@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<!--
+BeyondAdmin - Responsive Admin Dashboard Template build with Twitter Bootstrap 3.2.0
+Version: 1.0.0
+Purchase: http://wrapbootstrap.com
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<!-- Head -->
+<head>
+    <meta charset="utf-8" />
+    <title>用户钻石消耗统计</title>
+
+    <meta name="description" content="morris charts" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="shortcut icon" href="/statics/img/favicon.png" type="image/x-icon">
+
+    <!--Basic Styles-->
+    <link href="/statics/css/bootstrap.min.css" rel="stylesheet" />
+    <link id="bootstrap-rtl-link" href="" rel="stylesheet" />
+    <link href="/statics/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="/statics/css/weather-icons.min.css" rel="stylesheet" />
+
+    <!--Beyond styles-->
+    <link id="beyond-link" href="/statics/css/beyond.min.css" rel="stylesheet" />
+    <link href="/statics/css/demo.min.css" rel="stylesheet" />
+    <link href="/statics/css/typicons.min.css" rel="stylesheet" />
+    <link href="/statics/css/animate.min.css" rel="stylesheet" />
+    <link id="skin-link" href="" rel="stylesheet" type="text/css" />
+
+    <!--Skin Script: Place this script in head to load scripts for skins and rtl support-->
+    <script src="/statics/js/skins.min.js"></script>
+</head>
+<!-- /Head -->
+<!-- Body -->
+<body>
+    <% include modules/admin/view/common/loading_container.cshtml %>
+    <% include modules/admin/view/common/nav_bar.cshtml %>
+    <% include modules/admin/view/common/pre_main.cshtml %>
+    <!-- Page Body -->
+    <div class="page-body">
+        <div class="row">
+            <div class="col-xs-12 col-md-12 col-lg-12">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">钻石消耗</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <div id="area-chart-crystal-game" class="chart chart-lg"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Body -->
+    <% include modules/admin/view/common/end_main.cshtml %>
+    <!--Basic Scripts-->
+    <script src="/statics/js/jquery-2.0.3.min.js"></script>
+    <script src="/statics/js/bootstrap.min.js"></script>
+
+    <!--Beyond Scripts-->
+    <script src="/statics/js/beyond.min.js"></script>
+
+    <!--Page Related Scripts-->
+    <script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+    <script src="/statics/js/charts/morris/morris.js"></script>
+    <script src="/statics/js/charts/morris/morris-init.js"></script>
+
+    <script type="text/javascript">
+        $(window).bind("load", function () {
+
+            /*Sets Themed Colors Based on Themes*/
+            themeprimary = getThemeColorFromCss('themeprimary');
+            themesecondary = getThemeColorFromCss('themesecondary');
+            themethirdcolor = getThemeColorFromCss('themethirdcolor');
+            themefourthcolor = getThemeColorFromCss('themefourthcolor');
+            themefifthcolor = getThemeColorFromCss('themefifthcolor');
+
+            InitiateArea.init('Admin/Crystal/GetGame',
+                                'area-chart-crystal-game',
+                                'time',
+                                ['num'],
+                                ['消耗数']);
+        })
+    </script>
+</body>
+<!--  /Body -->
+</html>

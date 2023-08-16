@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>下载</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+            width: 100%;
+        }
+
+        #container {
+            background-image: url(./static/img/bg.png);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+        }
+
+        .ios {}
+
+        .android {}
+
+        .btn {
+            width: calc(247px * 0.5);
+            height: calc(148px * 0.5);
+            margin-top: 410px;
+            padding: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+		<a href="https://apps.apple.com/cn/app/zdpk/id1639458286"><img src="图片呀/c2.jpg" alt=""><img id="ios" class="ios btn" src="./static/img/ios.png" alt="ios"></a>
+		<a href="https://dzgame.obs.myhuaweicloud.com/texasres/apk/zdpt2.7.apk"><img src="图片呀/c2.jpg" alt=""><img id="android" class="android btn" src="./static//img/android.png" alt="android"></a>
+    </div>
+</body>
+<script>
+    let ios = document.getElementById('ios')
+    let android = document.getElementById('android')
+    let downLoad = (url, name) => {
+        const a_link = document.createElement("a");  // 生成一个a链接
+        a_link.href = url;
+        // a_link.download = name;
+        a_link.click();
+    }
+    console.log(downLoad);
+
+
+
+
+</script>
+
+</html>

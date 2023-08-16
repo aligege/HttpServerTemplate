@@ -1,0 +1,276 @@
+<% include modules/admin/view/common/header.cshtml %>
+<% include modules/admin/view/common/loading_container.cshtml %>
+<script src="/statics/custom/vue-page.js"></script>
+    <!-- Page Body -->
+    <div class="page-body" id="app">
+        <div class="row">
+            <div class="col-xs-12 col-md-12">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">条件筛选</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <table id="tb_cr_list" class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <td style="text-align: right;">用户id</td>
+                                    <td>
+                                        <input type="number" class="form-control" id="user_id" placeholder="" style="width: 180px" v-model="user_id">
+                                    </td>
+                                    <td>状态</td>
+                                    <td>
+                                        <select v-model="state" class="form-select">
+                                            <option value="-1">全部</option>
+                                            <option value="0">初始化</option>
+                                            <option value="1">用户取消</option>
+                                            <option value="2">验证中</option>
+                                            <option value="3">验证失败</option>
+                                            <option value="4">订单完成</option>
+                                        </select>
+                                    </td>
+                                    <td style="text-align: right;">账单起始时间</td>
+                                    <td>
+                                        <div class="input-group" id="start_time" style="width: 180px">
+                                            <input class="form-control date-picker" id="id_start_time" type="text" v-model="start_time">
+                                            <span class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        账单截止时间
+                                    </td>
+                                    <td>
+                                        <div class="input-group col-sm-3" id="end_time" style="width: 180px">
+                                            <input class="form-control date-picker" id="id_end_time"  type="text" v-model="end_time">
+                                            <span class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: right" colspan="7">
+                                    </td>
+                                    <td>
+                                        <a href="#" style="padding: 7px 12px;background-color: #00a7d0;border-radius:3px;text-align:center;color: #fff;display: inline-block;cursor:pointer;position: relative;top: 1px;" @click="onRest()">重  置</a>
+                                        <button class="btn shiny btn-primary " type="button" @click="onPage(cur)">搜  索</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-md-12">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">赠送金币记录</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <table class="table table-striped table-bordered table-hover" id="simpledatatable">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        订单号
+                                    </th>
+                                    <th>
+                                        用户id
+                                    </th>
+                                    <th>
+                                        用户名
+                                    </th>
+                                    <th>
+                                        商品名称
+                                    </th>
+                                    <th>
+                                        金额
+                                    </th>
+                                    <th>
+                                        来源
+                                    </th>
+                                    <th>
+                                        时间
+                                    </th>
+                                    <th>
+                                        状态
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in order_records">
+                                    <td>
+                                        {{item._id}}
+                                    </td>
+                                    <td>
+                                        {{item.user_id}}
+                                    </td>
+                                    <td>
+                                        {{item.user.nickname}}
+                                    </td>
+                                    <td>
+                                        {{item.product_id}}
+                                    </td>
+                                    <td>
+                                        {{item.money}}
+                                    </td>
+                                    <td>
+                                        支付宝
+                                    </td>
+                                    <td>
+                                        {{convertTime(item.create_time)}}
+                                    </td>
+                                    <td class="center ">
+                                        <p v-if="item.state==0">初始化</p>
+                                        <p v-if="item.state==1">用户取消</p>
+                                        <p v-if="item.state==2">验证中</p>
+                                        <p v-if="item.state==3">验证失败</p>
+                                        <p v-if="item.state==4">订单完成</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="row">
+                            <div class="col-sm-5"></div>
+                            <div class="col-sm-7">
+                                <vue-nav :cur="cur" :all="all" :url="url" :total="total" :jump_cb="onPage"></vue-nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Body -->
+
+    <!--Page Related Scripts-->
+    <script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+    <script src="/statics/js/datatable/jquery.dataTables.min.js"></script>
+    <script src="/statics/js/datatable/ZeroClipboard.js"></script>
+    <script src="/statics/js/datatable/dataTables.tableTools.min.js"></script>
+    <script src="/statics/js/datatable/dataTables.bootstrap.min.js"></script>
+    <script src="/statics/js/datetime/bootstrap-datetimepicker.min.js"></script>
+    <link href="/statics/css/bootstrap/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    <script type="text/javascript">
+        $(function(){
+            $('#id_start_time').datetimepicker({
+                minDate:"1000-1-1",
+                dayViewHeaderFormat:"YYYY年 MMMM",
+                locale : 'zh-cn',
+                zIndex:20190813
+            });
+            $('#id_end_time').datetimepicker({
+                minDate:"1000-1-1",
+                dayViewHeaderFormat:"YYYY年 MMMM",
+                locale : 'zh-cn',
+                zIndex:20190813
+            });
+        })
+        var vm_list = new Vue({
+            el: '#app',
+            data: 
+            {
+                state:-1,
+                user_id:"",
+                start_time:null,
+                end_time:null,
+                order_records:[],
+                cur: 0,
+                all: 0,
+                total: 0,
+                url:window.location.href
+            },
+            components:
+            {
+                'vue-nav': Vnav
+            },
+            created()
+            {
+                this.updateDates(0)
+            },
+            methods:
+            {
+                convertTime:function(time)
+                {
+                    return moment(time).format('YYYY-M-D H:mm:ss')
+                },
+                updateUser:function(user_id)
+                {
+                    this.user_id=user_id
+                    this.onPage(this.cur)
+                },
+                onRest:function()
+                {
+                    this.user_id=null
+                    this.start_time=null
+                    this.end_time=null
+                    this.onPage(1)
+                },
+                onPage:function(page)
+                {
+                    this.updateDates(page-1)
+                },
+                updateDates:function(page)
+                {
+                    let str_start_time =$('#id_start_time').val()
+                    let start_time = new Date(str_start_time).getTime()||null
+                    let str_end_time =$('#id_end_time').val()
+                    let end_time = new Date(str_end_time).getTime()||null
+
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/order/OrderRecords",
+                        dataType: 'json',
+                        data:{
+                            user_id:this.user_id,
+                            state:this.state,
+                            page:page,
+                            page_num:20,
+                            start_time:start_time,
+                            end_time:end_time
+                        },
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            self.cur=response.page
+                            self.all=response.total_page
+                            self.total=response.total_num
+                            self.order_records=response.order_records||[]
+                        },
+                        error:function(){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                }
+            }
+        });
+    </script>
+<% include modules/admin/view/common/footer.cshtml %>

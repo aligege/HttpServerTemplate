@@ -1,0 +1,180 @@
+<% include modules/admin/view/common/header.cshtml %>
+<% include modules/admin/view/common/loading_container.cshtml %>
+<script src="/statics/custom/vue-page.js"></script>
+<!-- Page Body -->
+<div id="app" class="page-body">
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div class="widget">
+                <div class="widget-header ">
+                    <span class="widget-caption">条件筛选</span>
+                    <div class="widget-buttons">
+                        <a href="#" data-toggle="maximize">
+                            <i class="fa fa-expand"></i>
+                        </a>
+                        <a href="#" data-toggle="collapse">
+                            <i class="fa fa-minus"></i>
+                        </a>
+                        <a href="#" data-toggle="dispose">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="widget-body">
+                    <table id="tb_cr_list" class="table table-striped">
+                        <tbody>
+                            <tr>
+                                <td style="text-align: right;">用户id</td>
+                                <td>
+                                    <input type="number" class="form-control" id="user_id" placeholder="" style="width: 180px" v-model="user_id">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right">
+                                </td>
+                                <td style="padding-top: 20px">
+                                    <button class="btn shiny btn-primary " type="button" @click="onPage(cur)">搜  索</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div class="widget">
+                <div class="widget-header ">
+                    <span class="widget-caption">道具</span>
+                    <div class="widget-buttons">
+                        <a href="#" data-toggle="maximize">
+                            <i class="fa fa-expand"></i>
+                        </a>
+                        <a href="#" data-toggle="collapse">
+                            <i class="fa fa-minus"></i>
+                        </a>
+                        <a href="#" data-toggle="dispose">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="widget-body">
+                    <table id="tb_item_list" class="table table-bordered table-striped">
+                        <thead>
+                        <tr style="font-size: 14px;">
+                            <th>用户id</th>
+                            <th>用户名</th>
+                            <th>电话号码</th>
+                            <th>道具id</th>
+                            <th>道具名称</th>
+                            <th>获得时间</th>
+                            <th>申请时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="item in items">
+                                <td>{{item.user.id}}</td>
+                                <td>{{item.user.nickname}}</td>
+                                <td>{{item.account.phone}}</td>
+                                <td>{{item.items.item_id}}</td>
+                                <td>{{item.items.itemname}}</td>
+                                <td>{{convertTime(item.items.create_time)}}</td>
+                                <td>{{convertTime(item.items.apply_time)}}</td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+                    <div class="row">
+                    <div class="col-sm-5"></div>
+                    <div class="col-sm-7">
+                        <vue-nav :cur="cur" :all="all" :url="url" :total="total" :jump_cb="onPage"></vue-nav>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Page Body -->
+
+<!--Page Related Scripts-->
+<script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+<script src="/statics/js/datatable/jquery.dataTables.min.js"></script>
+<script src="/statics/js/datatable/ZeroClipboard.js"></script>
+<script src="/statics/js/datatable/dataTables.tableTools.min.js"></script>
+<script src="/statics/js/datatable/dataTables.bootstrap.min.js"></script>
+<script src="/statics/js/datetime/bootstrap-datetimepicker.min.js"></script>
+<link href="/statics/css/bootstrap/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<script type="text/javascript">
+var vm_item_list = new Vue({
+    el: '#app',
+    data: 
+    {
+        user_id:-1,
+        items:[],
+        cur: 0,
+        all: 0,
+        total: 0,
+        url:window.location.href
+    },
+    components:
+    {
+        'vue-nav': Vnav
+    },
+    created()
+    {
+        this.updateDatas(0)
+    },
+    methods:
+    {
+        convertTime:function(time)
+        {
+            return moment(time).format('YYYY-M-D H:mm:ss')
+        },
+        onPage:function(page)
+        {
+            this.updateDatas(page-1)
+        },
+        updateDatas:function(page)
+        {
+            let self = this
+            $.ajax({
+                type: "POST",
+                url: "/item/GetAllBagItem",
+                dataType: 'json',
+                data:{
+                    user_id:this.user_id||-1,
+                    page:page,
+                    page_num:20,
+                },
+                xhrFields: {
+                    withCredentials: true
+                },
+                crossDomain: true,
+                success:function(response)
+                {
+                    if(response.err)
+                    {
+                        layer.msg(response.err, {icon: 5, time: 2000})
+                        return
+                    }
+                    self.cur=response.page
+                    self.all=response.total_page
+                    self.total=response.count
+                    self.items=response.items||[]
+                    self.items.sort((a,b)=>
+                    {
+                        return b.id-a.id
+                    })
+                },
+                error:function(){
+            
+                },
+            })
+        }
+    }
+});
+</script>
+<% include modules/admin/view/common/footer.cshtml %>

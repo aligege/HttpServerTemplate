@@ -1,0 +1,131 @@
+<% include modules/admin/view/common/header.cshtml %>
+<div class="login-container animated fadeInDown">
+    <div class="loginbox bg-white">
+        <div name="login_form" class="form-horizontal" onsubmit="return false">
+            <div class="loginbox-title">登陆</div>
+            <div style="width:100px;height:20px"></div>
+            <div class="loginbox-textbox">
+                <input id="phone" type="text" class="form-control" placeholder="手机号码"/>
+            </div>
+            <div class="loginbox-textbox">
+                <input id="code" type="text" class="form-control"/>
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" id="btn_code">获取验证码</button>
+                </span>
+            </div>
+            <div class="loginbox-textbox">
+                <input id="password" type="password" class="form-control" placeholder="密码" />
+            </div>
+            <div class="loginbox-textbox">
+                <button id="btn_login" type="button" class="btn btn-primary btn-block">登陆</button>
+            </div>
+        </form>
+    </div>
+    <div class="logobox">
+    </div>
+</div>
+<script src="/statics/custom/tool.js"></script>
+<script>
+    var handler=null
+    var begin_time = Date.now()
+    $('#btn_code').on('click', ()=>
+    {
+        $.ajax({
+            type: "POST",
+            url: "/login/logincode",
+            dataType: 'json',
+            data:
+            {
+                phone:$("#phone").val(),
+                password:$("#password").val(),
+                code:$("#code").val(),
+                from:4
+            },
+            xhrFields:
+            {
+                withCredentials: true
+            },
+            crossDomain: true,
+            success:(jsonData)=>
+            {
+                if(jsonData.errcode)
+                {
+                    layer.msg(jsonData.errcode.des, {icon: 5, time: 2000});
+                }
+                else
+                {
+                    $("#btn_code").attr("disabled","disabled")
+                    begin_time=Date.now()
+                    layer.msg("验证码获取成功，请注意查收", {icon: 1, time: 2000});
+                    let dt = Date.now()-begin_time
+                    dt=60-Math.floor(dt/1000)
+                    $("#btn_code").val(dt)
+
+                    handler=setInterval(()=>
+                    {
+                        let dt = Date.now()-begin_time
+                        dt=60-Math.floor(dt/1000)
+                        if(dt<=0)
+                        {
+                            clearInterval(handler)
+                            $("#btn_code").val("获取验证码")
+                            $("#btn_code").removeAttr("disabled")
+                            return
+                        }
+                        $("#btn_code").val(dt)
+                    },100)
+                }
+            }
+        })
+    })
+    $('#btn_login').on('click', ()=>
+    {
+        $.ajax({
+            type: "POST",
+            url: "/login/login",
+            dataType: 'json',
+            data:
+            {
+                phone:$("#phone").val(),
+                password:$("#password").val(),
+                code:$("#code").val(),
+                from:4
+            },
+            xhrFields:
+            {
+                withCredentials: true
+            },
+            crossDomain: true,
+            success:(jsonData)=>
+            {
+                if(jsonData.errcode)
+                {
+                    layer.msg(jsonData.errcode.des, {icon: 5, time: 2000});
+                }
+                else
+                {
+                    let need_ret=false
+                    if (document.referrer.length>0) 
+                    {
+                        let pre_root=tool.getRootPath(document.referrer)
+                        let cur_root=tool.getRootPath()
+                        if(pre_root==cur_root)
+                        {
+                            need_ret=true
+                        }
+                    }
+                    // if(need_ret)
+                    // {
+                    //     window.history.back()
+                    // }
+                    // else
+                    {
+                        window.location.href="/System"
+                    }
+                }
+            }
+        })
+    })
+</script>
+
+<% include modules/admin/view/common/footer.cshtml %>

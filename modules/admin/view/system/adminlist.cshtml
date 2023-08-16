@@ -1,0 +1,220 @@
+<% include modules/admin/view/common/header.cshtml %>
+<% include modules/admin/view/common/loading_container.cshtml %>
+<!-- Page Body -->
+<div id="app" class="page-body">
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div class="widget">
+                <div style="margin:10px">
+                    <button class="btn purple" type="button" @click="addAdmin"><i class="fa fa-plus"></i> 新增</button>
+                </div>
+                <div class="widget-header ">
+                    <span class="widget-caption">管理员</span>
+                    <div class="widget-buttons">
+                        <a href="#" data-toggle="maximize">
+                            <i class="fa fa-expand"></i>
+                        </a>
+                        <a href="#" data-toggle="collapse">
+                            <i class="fa fa-minus"></i>
+                        </a>
+                        <a href="#" data-toggle="dispose">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="widget-body">
+                    <table id="tb_user_list" class="table table-bordered table-striped">
+                        <thead>
+                        <tr style="font-size: 14px;">
+                            <th>用户id</th>
+                            <th>用户名</th>
+                            <th>金币</th>
+                            <th>注册时间</th>
+                            <th>最近登陆时间</th>
+                            <th>最近登陆ip</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="user in users">
+                                <td>{{user.id}}</td>
+                                <td>{{user.nickname}}</td>
+                                <td>{{user.coin}}</td>
+                                <td>{{convertTime(user.create_time)}}</td>
+                                <td>{{convertTime(user.login_time)}}</td>
+                                <td>{{user.login_ip}}</td>
+                                <td>
+                                    <a href="#" class="btn btn-danger btn-xs delete" @click="onRemove(user.id)"><i class="fa fa-trash-o"></i> 撤消管理员资格</a>
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Page Body -->
+
+<!--Page Related Scripts-->
+<script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+<script src="/statics/js/datatable/jquery.dataTables.min.js"></script>
+<script src="/statics/js/datatable/ZeroClipboard.js"></script>
+<script src="/statics/js/datatable/dataTables.tableTools.min.js"></script>
+<script src="/statics/js/datatable/dataTables.bootstrap.min.js"></script>
+<script type="text/javascript">
+    var admin_list_vm = new Vue({
+        el: '#app',
+        data: 
+        {
+            users:[]
+        },
+        created()
+        {
+            let self = this
+            $.ajax({
+                type: "POST",
+                url: "/system/adminlist",
+                dataType: 'json',
+                data:null,
+                xhrFields: {
+                    withCredentials: true
+                },
+                crossDomain: true,
+                success:function(response)
+                {
+                    if(response.err)
+                    {
+                        layer.msg(response.err, {icon: 5, time: 2000})
+                        return
+                    }
+                    self.users=response.users||[]
+                },
+                error:function(){
+            
+                },
+            })
+        },
+        methods:
+        {
+            addAdmin:function()
+            {
+                layer.open({
+                    type: 1,
+                    title: '管理员-新增管理员',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['600px' , '250px'],
+                    content: $('#id_admin')
+                });
+            },
+            onRemove(user_id)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/system/removeAdmin",
+                    dataType: 'json',
+                    data:JSON.stringify({
+                        user_id:user_id
+                    }),
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                            return
+                        }
+                        for(let i=0;i<self.users.length;++i)
+                        {
+                            let u = self.users[i]
+                            if(u.id==user_id)
+                            {
+                                self.users.splice(i,1)
+                                break
+                            }
+                        }
+                        layer.msg("撤消成功", {icon: 1, time: 2000})
+                    },
+                    error:function(){
+                        layer.msg("请求失败", {icon: 5, time: 2000})
+                    },
+                })
+            },
+            convertTime:function(time)
+            {
+                return moment(time).format('YYYY-M-D H:mm:ss')
+            }
+        }
+    });
+</script>
+
+<div>
+    <div id="custom">
+        <div id="id_admin" style="display: none;padding:50px;padding-top:20px;padding-bottom:10px">
+            <table id="tb_admin_list" class="table table-bordered table-striped">
+                <tbody>
+                    <tr>
+                        <td>用户id</td>
+                        <td>
+                            <input style="width:300px" type="number" step="1" class="form-control" v-model="user_id">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size:90%;color:#c7254e;background-color:#f9f2f4;margin-top:5px"></p>
+            <div style="text-align:center;padding-top:10px">
+                <button class="btn shiny btn-primary " type="button" @click="addAdmin">添加管理员</button>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var vm_op = new Vue({
+            el: '#custom',
+            data: 
+            {
+                user_id:"",
+            },
+            methods: 
+            {
+                addAdmin:function()
+                {
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/system/addAdmin",
+                        dataType: 'json',
+                        data:JSON.stringify({user_id:parseInt(self.user_id)}),
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.err)
+                            {
+                                layer.msg(response.err, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                admin_list_vm.users.unshift(response.user)
+                                layer.closeAll()
+                                layer.msg("添加成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                },
+            }
+        });
+    </script>
+</div>
+<% include modules/admin/view/common/footer.cshtml %>

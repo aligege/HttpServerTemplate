@@ -1,0 +1,64 @@
+{
+    "third_cfg":
+    {
+        "aliSms":
+        {
+            "signName":"111",
+            "accessKeyId":"111",
+            "secretAccessKey":"111",
+            "templateCode":"111"
+        }
+    },
+    "local_host":"127.0.0.1",
+    "internet_host":"www.eryinet.com",
+    "db":
+    {
+        "redis":
+        {
+            "port":6379,
+            "host":"119.3.84.135",
+            "database":1,
+            "open":true
+        },
+        "mongo":
+        {
+            "open":true,
+            "host":"119.3.84.135",
+            "port":27017,
+            "options":
+            {
+                "auth":
+                {
+                    "username":"root",
+                    "password":"texas123!@#"
+                },
+                "maxIdleTimeMS":600000,
+                "maxPoolSize":200,
+                "minPoolSize": 10,
+                "maxConnecting": 200
+            },
+            "database" : "texas"
+        }
+    },
+    "webserver":
+    {
+        "port":6301,
+        "cache":{},
+        "debug":true,
+        "web_name":"admin",
+        "cookie":
+        {
+            "prefix":"account_cookie_",
+            "expires":
+            {
+                "account_remember": 604800,
+                "account": 3600
+            }
+        },
+        "routs":
+        {
+            "onlyModule":"admin",
+            "defaults": { "module":"admin","controller" : "System", "action" : "Index"}
+        }
+    }
+}

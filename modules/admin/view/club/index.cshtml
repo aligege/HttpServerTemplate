@@ -1,0 +1,444 @@
+﻿    <% include modules/admin/view/common/header.cshtml %>
+    <% include modules/admin/view/common/loading_container.cshtml %>
+    <script src="/statics/custom/vue-page.js"></script>
+    <!-- Page Body -->
+    <div id="app" class="page-body">
+        <div class="row">
+            <div class="col-xs-12 col-md-12">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">俱乐部</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <div style="margin:10px">
+                            <button class="btn   purple" type="button" @click="add()"><i class="fa fa-plus"></i> 新增</button>
+                        </div>
+                        <table id="tb_club_list" class="table table-bordered table-striped">
+                            <thead>
+                            <tr style="font-size: 14px;">
+                                <th>id</th>
+                                <th>邀请码</th>
+                                <th>名称</th>
+                                <th>城市</th>
+                                <th>联系方式</th>
+                                <th>关注数</th>
+                                <th>创建时间</th>
+                                <th>用户信息</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="club in clubs">
+                                    <td>{{club.id}}</td>
+                                    <td>{{club.invite_code||"--"}}</td>
+                                    <td>{{club.title}}</td>
+                                    <td>{{club.city}}</td>
+                                    <td>{{club.service}}</td>
+                                    <td>{{club.user_count}}</td>
+                                    <td>{{convertTime(club.create_time)}}</td>
+                                    <td>
+                                        <a href="#" class="btn btn-info btn-xs" @click="checkusers(club.id)"><i class="fa fa-info"></i> 查看</a>
+                                    </td>
+                                    <td>
+                                        <p v-if="club.open==0">关闭</p>
+                                        <p v-if="club.open==1">开放</p>
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-danger btn-xs delete" @click="remove(club.id)"><i class="fa fa-trash-o"></i> 删除</a>
+                                        <a href="#" class="btn btn-danger btn-xs edit" @click="modify(club)"><i class="fa fa-edit"></i> 修改</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+
+                        <div class="row">
+                        <div class="col-sm-5"></div>
+                        <div class="col-sm-7">
+                            <vue-nav :cur="cur" :all="all" :url="url" :total="total" :jump_cb="onPage"></vue-nav>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Body -->
+
+<!--Page Related Scripts-->
+<script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+<script src="/statics/js/datatable/jquery.dataTables.min.js"></script>
+<script src="/statics/js/datatable/ZeroClipboard.js"></script>
+<script src="/statics/js/datatable/dataTables.tableTools.min.js"></script>
+<script src="/statics/js/datatable/dataTables.bootstrap.min.js"></script>
+<script src="/statics/js/datetime/bootstrap-datetimepicker.min.js"></script>
+<link href="/statics/css/bootstrap/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<script type="text/javascript">
+    var vm_club_list = new Vue({
+        el: '#app',
+        data: 
+        {
+            clubs:[],
+            cur: 0,
+            all: 0,
+            total: 0,
+            url:window.location.href
+        },
+        components:
+        {
+            'vue-nav': Vnav
+        },
+        created()
+        {
+            this.updateDates(0)
+        },
+        methods:
+        {
+            add()
+            {
+                vm_op.init(true)
+                layer.open({
+                    type: 1,
+                    title: '俱乐部-新增俱乐部',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_club')
+                });
+            },
+            remove(club_id)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/club/remove",
+                    dataType: 'json',
+                    data:{
+                        club_id:club_id,
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.errcode)
+                        {
+                            layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            return
+                        }
+                        for(let i=0;i<self.clubes.length;++i)
+                        {
+                            let s = self.clubes[i]
+                            if(s.id==club_id)
+                            {
+                                self.clubes.splice(i,1)
+                                break
+                            }
+                        }
+                        layer.msg("删除成功", {icon: 1, time: 2000})
+                    },
+                    error:function(){
+                
+                    },
+                })
+            },
+            modify(club)
+            {
+                vm_op.init(false,club)
+                layer.open({
+                    type: 1,
+                    title: '比赛-修改比赛',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_club')
+                });
+            },
+            convertTime:function(time)
+            {
+                return moment(time).format('YYYY-M-D H:mm:ss')
+            },
+            onPage:function(page)
+            {
+                this.updateDates(page-1)
+            },
+            updateDates:function(page)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/club/clublist",
+                    dataType: 'json',
+                    data:JSON.stringify({
+                    }),
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                            return
+                        }
+                        self.cur=response.page
+                        self.all=response.total_page
+                        self.total=response.count
+                        self.clubs=response.clubs||[]
+                        self.clubs.sort((a,b)=>
+                        {
+                            return b.id-a.id
+                        })
+                    },
+                    error:function(){
+                
+                    },
+                })
+            },
+            checkusers:function(page)
+            {
+
+            }
+        }
+    });
+</script>
+<div>
+    <div id="custom">
+        <div id="id_club" style="display: none;padding:50px;padding-top:20px;padding-bottom:10px">
+            <table id="tb_bulletin_list" class="table table-bordered table-striped">
+                <tbody>
+                    <tr v-if="!is_add">
+                        <td>俱乐部id</td>
+                        <td>
+                            <input type="number" step="1" class="form-control" v-model="id" :disabled="true">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>邀请码</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="invite_code">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>俱乐部名称</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="title">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>俱乐部Url</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="url">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>俱乐部区域</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="region">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>俱乐部省</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="provience">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>俱乐部城市</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="city">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>联系方式</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="service">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>是否开放</td>
+                        <td>
+                            <div class="control-group">
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="open-radio" type="radio" class="colored-danger" value="1" v-model="open"/>
+                                            <span class="text">开放</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="open-radio" type="radio" class="colored-danger" value="0" v-model="open"/>
+                                            <span class="text">关闭</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="text-align:center;padding-top:10px">
+                <button v-if="is_add" class="btn shiny btn-primary " type="button" @click="add">新增俱乐部</button>
+                <button v-if="!is_add" class="btn shiny btn-primary " type="button" @click="update">修改俱乐部</button>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var vm_op = new Vue({
+            el: '#custom',
+            data: 
+            {
+                is_add:false,
+                id:0,
+                invite_code:"",
+                title:"",
+                url:"",
+                region:"",
+                provience:"",
+                city:"",
+                service:"",
+                open:0
+            },
+            methods: 
+            {
+                init:function(is_add,club)
+                {
+                    if(!club)
+                    {
+                        club={}
+                    }
+                    this.is_add=is_add
+                    this.id=club.id||0
+                    this.invite_code=club.invite_code||""
+                    this.title=club.title||""
+                    this.url=club.url||""
+                    this.region=club.region||""
+                    this.provience=club.provience||""
+                    this.city=club.city||""
+                    this.service=club.service||""
+                    this.open=club.open||0
+                },
+                add:function()
+                {
+                    let club=
+                    {
+                        club:{
+                            id:this.id,
+                            invite_code:this.invite_code,
+                            title:this.title,
+                            url:this.url,
+                            region:this.region,
+                            provience:this.provience,
+                            city:this.city,
+                            service:this.service,
+                            open:this.open
+                        }
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/club/add",
+                        dataType: 'json',
+                        data:club,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.errcode)
+                            {
+                                layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                vm_club_list.clubs.unshift(response.club)
+                                layer.closeAll()
+                                layer.msg("俱乐部添加成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                },
+                update:function()
+                {
+                    let club=
+                    {
+                        club:{
+                            id:this.id,
+                            invite_code:this.invite_code,
+                            title:this.title,
+                            url:this.url,
+                            region:this.region,
+                            provience:this.provience,
+                            city:this.city,
+                            service:this.service,
+                            open:this.open
+                        }
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/club/update",
+                        dataType: 'json',
+                        data:club,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.errcode)
+                            {
+                                layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                for(let i=0;i<vm_club_list.clubs.length;++i)
+                                {
+                                    let r = vm_club_list.clubs[i]
+                                    if(r.id==response.club.id)
+                                    {
+                                        vm_club_list.clubs[i]=response.club
+                                        break
+                                    }
+                                }
+                                layer.closeAll()
+                                vm_club_list.clubs.sort((a,b)=>
+                                {
+                                    return b.id-a.id
+                                })
+                                layer.msg("服务器更新成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                }
+            }
+        });
+    </script>
+</div>
+    <% include modules/admin/view/common/footer.cshtml %>

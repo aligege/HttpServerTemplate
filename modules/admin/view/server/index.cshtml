@@ -1,0 +1,482 @@
+﻿    <% include modules/admin/view/common/header.cshtml %>
+    <% include modules/admin/view/common/loading_container.cshtml %>
+    <script src="/statics/custom/vue-page.js"></script>
+    <!-- Page Body -->
+    <div id="app" class="page-body">
+        <div class="row">
+            <div class="col-xs-12 col-md-12">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">服务器</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <div style="margin:10px">
+                            <button class="btn   purple" type="button" @click="add()"><i class="fa fa-plus"></i> 新增</button>
+                        </div>
+                        <table id="tb_server_list" class="table table-bordered table-striped">
+                            <thead>
+                            <tr style="font-size: 14px;">
+                                <th>id</th>
+                                <th>名称</th>
+                                <th>排序号</th>
+                                <th>地址</th>
+                                <th>端口</th>
+                                <th>介绍</th>
+                                <th>是否显示</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="server in servers">
+                                    <td>{{server.id}}</td>
+                                    <td>{{server.name}}</td>
+                                    <td>{{server.sort_num}}</td>
+                                    <td>{{server.host}}</td>
+                                    <td>{{server.port}}</td>
+                                    <td>{{server.info}}</td>
+                                    <td>
+                                        <span v-if="server.is_show>0">显示</span>
+                                        <span v-if="server.is_show<0">隐藏</span>
+                                    </td>
+                                    <td>{{convertTime(server.create_time)}}</td>
+                                    <td>
+                                        <a href="#" v-if="server.is_show>=0" class="btn btn-info btn-xs edit" @click="updateState(server.id,-1)"><i class="fa fa-edit"></i> 隐藏</a>
+                                        <a href="#" v-if="server.is_show<0" class="btn btn-info btn-xs edit" @click="updateState(server.id,1)"><i class="fa fa-edit"></i> 显示</a>
+                                        <a href="#" class="btn btn-danger btn-xs delete" @click="remove(server.id)"><i class="fa fa-trash-o"></i> 删除</a>
+                                        <a href="#" class="btn btn-danger btn-xs edit" @click="modify(server)"><i class="fa fa-edit"></i> 修改</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+
+                        <div class="row">
+                        <div class="col-sm-5"></div>
+                        <div class="col-sm-7">
+                            <vue-nav :cur="cur" :all="all" :url="url" :total="total" :jump_cb="onPage"></vue-nav>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Body -->
+
+<!--Page Related Scripts-->
+<script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+<script src="/statics/js/datatable/jquery.dataTables.min.js"></script>
+<script src="/statics/js/datatable/ZeroClipboard.js"></script>
+<script src="/statics/js/datatable/dataTables.tableTools.min.js"></script>
+<script src="/statics/js/datatable/dataTables.bootstrap.min.js"></script>
+<script src="/statics/js/datetime/bootstrap-datetimepicker.min.js"></script>
+<link href="/statics/css/bootstrap/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<script type="text/javascript">
+    var vm_server_list = new Vue({
+        el: '#app',
+        data: 
+        {
+            servers:[],
+            cur: 0,
+            all: 0,
+            total: 0,
+            url:window.location.href
+        },
+        components:
+        {
+            'vue-nav': Vnav
+        },
+        created()
+        {
+            this.updateDates(0)
+        },
+        methods:
+        {
+            add()
+            {
+                vm_op.init(true)
+                layer.open({
+                    type: 1,
+                    title: '服务器-新增服务器',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_server')
+                });
+            },
+            remove(server_id)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/server/remove",
+                    dataType: 'json',
+                    data:{
+                        server_id:server_id,
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.errcode)
+                        {
+                            layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            return
+                        }
+                        for(let i=0;i<self.servers.length;++i)
+                        {
+                            let s = self.servers[i]
+                            if(s.id==server_id)
+                            {
+                                self.servers.splice(i,1)
+                                break
+                            }
+                        }
+                        layer.msg("删除成功", {icon: 1, time: 2000})
+                    },
+                    error:function(){
+                
+                    },
+                })
+            },
+            modify(server)
+            {
+                vm_op.init(false,server)
+                layer.open({
+                    type: 1,
+                    title: '公告-修改公告',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_server')
+                });
+            },
+            updateState(server_id,state)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/server/updatestate",
+                    dataType: 'json',
+                    data:{
+                        server_id:server_id,
+                        is_show:state
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.errcode)
+                        {
+                            layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            return
+                        }
+                        for(let i=0;i<self.servers.length;++i)
+                        {
+                            let s = self.servers[i]
+                            if(s.id==server_id)
+                            {
+                                s.is_show = state
+                                break
+                            }
+                        }
+                        if(state==1)
+                        {
+                            layer.msg("显示成功", {icon: 1, time: 2000})
+                        }
+                        else
+                        {
+                            layer.msg("隐藏成功", {icon: 1, time: 2000})
+                        }
+                    },
+                    error:function(){
+                
+                    },
+                })
+            },
+            convertTime:function(time)
+            {
+                return moment(time).format('YYYY-M-D H:mm:ss')
+            },
+            onPage:function(page)
+            {
+                this.updateDates(page-1)
+            },
+            updateDates:function(page)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/server/serverlist",
+                    dataType: 'json',
+                    data:JSON.stringify({
+                    }),
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                            return
+                        }
+                        self.cur=response.page
+                        self.all=response.total_page
+                        self.total=response.count
+                        self.servers=response.servers||[]
+                        self.servers.sort((a,b)=>
+                        {
+                            return b.id-a.id
+                        })
+                    },
+                    error:function(){
+                
+                    },
+                })
+            }
+        }
+    });
+</script>
+<div>
+    <div id="custom">
+        <div id="id_server" style="display: none;padding:50px;padding-top:20px;padding-bottom:10px">
+            <table id="tb_bulletin_list" class="table table-bordered table-striped">
+                <tbody>
+                    <tr v-if="!is_add">
+                        <td>服务器id</td>
+                        <td>
+                            <input type="number" step="1" class="form-control" v-model="id" disabled="disabled">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>名称</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="name">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>排序</td>
+                        <td>
+                            <input type="number" class="form-control" v-model="sort_num">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>地址</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="host">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>端口</td>
+                        <td>
+                            <input type="number" class="form-control" v-model="port">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>GM地址</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="gmhost">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>GM端口</td>
+                        <td>
+                            <input type="number" class="form-control" v-model="gmport">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>介绍</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="info">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>是否显示</td>
+                        <td>
+                            <div class="control-group">
+                                <div class="col-lg-3 col-sm-3 col-xs-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="form-field-radio" type="radio" class="colored-blue" value="1" v-model="is_show">
+                                            <span class="text">显示</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-sm-3 col-xs-3">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="form-field-radio" type="radio" class="colored-danger" value="-1" v-model="is_show">
+                                            <span class="text">隐藏</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="text-align:center;padding-top:10px">
+                <button v-if="is_add" class="btn shiny btn-primary " type="button" @click="add">新增服务器</button>
+                <button v-if="!is_add" class="btn shiny btn-primary " type="button" @click="update">修改服务器</button>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var vm_op = new Vue({
+            el: '#custom',
+            data: 
+            {
+                is_add:false,
+                id:0,
+                name:"",
+                sort_num:-1,
+                host:"",
+                port:-1,
+                gmhost:"",
+                gmport:-1,
+                info:"",
+                is_show:-1
+            },
+            methods: 
+            {
+                init:function(is_add,server)
+                {
+                    if(!server)
+                    {
+                        server={}
+                    }
+                    this.is_add=is_add
+                    this.id=server.id||0
+                    this.name=server.name||""
+                    this.host=server.host||""
+                    this.port=server.port||-1
+                    this.gmhost=server.gmhost||""
+                    this.gmport=server.gmport||-1
+                    this.info=server.info||""
+                    this.sort_num=server.sort_num||-1
+                    this.is_show=server.is_show||-1
+                },
+                add:function()
+                {
+                    let server=
+                    {
+                        server:{
+                            name:this.name,
+                            host:this.host,
+                            port:this.port,
+                            gmhost:this.gmhost,
+                            gmport:this.gmport,
+                            info:this.info,
+                            sort_num:this.sort_num,
+                            is_show:this.is_show
+                        }
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/server/add",
+                        dataType: 'json',
+                        data:server,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.errcode)
+                            {
+                                layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                vm_server_list.servers.unshift(response.server)
+                                layer.closeAll()
+                                layer.msg("服务器添加成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                },
+                update:function()
+                {
+                    let server=
+                    {
+                        server:{
+                            id:this.id,
+                            name:this.name,
+                            host:this.host,
+                            port:this.port,
+                            gmhost:this.gmhost,
+                            gmport:this.gmport,
+                            info:this.info,
+                            sort_num:this.sort_num,
+                            is_show:this.is_show
+                        }
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/server/update",
+                        dataType: 'json',
+                        data:server,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.errcode)
+                            {
+                                layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                for(let i=0;i<vm_server_list.servers.length;++i)
+                                {
+                                    let r = vm_server_list.servers[i]
+                                    if(r.id==response.server.id)
+                                    {
+                                        vm_server_list.servers[i]=response.server
+                                        break
+                                    }
+                                }
+                                layer.closeAll()
+                                vm_server_list.servers.sort((a,b)=>
+                                {
+                                    return b.id-a.id
+                                })
+                                layer.msg("服务器更新成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                }
+            }
+        });
+    </script>
+</div>
+    <% include modules/admin/view/common/footer.cshtml %>

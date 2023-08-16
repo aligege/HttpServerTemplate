@@ -1,0 +1,433 @@
+<% include modules/admin/view/common/header.cshtml %>
+<% include modules/admin/view/common/loading_container.cshtml %>
+<!-- Page Body -->
+<div class="page-body" id="app">
+    <div class="row">
+        <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+            <div class="row">
+                <table id="tb_room_list" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <td colspan="3" style="text-align: center">大厅服信息配置</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>服务器运行地址</td>
+                            <td>
+                                    <input style="width:300px" type="text" class="form-control" v-model="svr.host">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>服务器运行端口</td>
+                            <td>
+                                <input style="width:300px" type="number" step="1" class="form-control" v-model="svr.port">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>服务器GM端口</td>
+                            <td>
+                                <input style="width:300px" type="number" step="1" class="form-control" v-model="svr.gmport">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="text-align:center;padding-top:10px;margin-bottom: 20px">
+                    <button class="btn shiny btn-primary " type="button" @click="updateSvr">确认更改</button>
+                </div>
+                <table id="tb_room_list" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <td colspan="3" style="text-align: center">玩法动态配置</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>系统玩法设置</td>
+                            <td>
+                                <div class="row">
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-blue" value="true" v-model="game.main.score">
+                                                <span class="text">开放积分场</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-success" value="true" v-model="game.main.cunstom">
+                                                <span class="text">开放自建场</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-warning" value="true" v-model="game.main.club">
+                                                <span class="text">开放俱乐部</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>麻将开放性设置</td>
+                            <td>
+                                <div class="row">
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-blue" value="true" v-model="game.mahjong.score">
+                                                <span class="text">开放麻将积分场</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-success" value="true" v-model="game.mahjong.cunstom">
+                                                <span class="text">开放麻将自建场</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-warning" value="true" v-model="game.mahjong.club">
+                                                <span class="text">开放麻将俱乐部</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>牛牛开放性设置</td>
+                            <td>
+                                <div class="row">
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-blue" value="true" v-model="game.ox.score">
+                                                <span class="text">开放牛牛积分场</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-success" value="true" v-model="game.ox.cunstom">
+                                                <span class="text">开放牛牛自建场</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-warning" value="true" v-model="game.ox.club">
+                                                <span class="text">开放牛牛俱乐部</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>拼三张开放性设置</td>
+                            <td>
+                                <div class="row">
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-blue" value="true" v-model="game.psz.score">
+                                                <span class="text">开放拼三张积分场</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-success" value="true" v-model="game.psz.cunstom">
+                                                <span class="text">开放拼三张自建场</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-warning" value="true" v-model="game.psz.club">
+                                                <span class="text">开放拼三张俱乐部</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>功能性设置</td>
+                            <td>
+                                <div class="row">
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-blue" value="true" v-model="game.fun.email">
+                                                <span class="text">开放邮件系统</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-success" value="true" v-model="game.fun.record">
+                                                <span class="text">开放上局回顾</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-warning" value="true" v-model="game.fun.ask">
+                                                <span class="text">开放留言反馈</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-blueberry" value="true" v-model="game.fun.bank">
+                                                <span class="text">开放转账功能(保险箱)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-danger" value="true" v-model="game.fun.rank">
+                                                <span class="text">开放排行榜</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-orange" value="true" v-model="game.fun.task">
+                                                <span class="text">开放任务</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-magenta" value="true" v-model="game.fun.sign">
+                                                <span class="text">开放签到</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>功能限制类</td>
+                            <td>
+                                <div class="row">
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-blue" value="true" v-model="game.cfg.any_transfer">
+                                                <span class="text">可任意转账</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-success" value="true" v-model="game.cfg.must_phone">
+                                                <span class="text">必须绑定手机号</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-3 col-xs-3">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" class="colored-warning" value="true" v-model="game.cfg.must_bind">
+                                                <span class="text">必须绑定推广码</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="text-align:center;padding-top:10px">
+                    <button class="btn shiny btn-primary " type="button" @click="updateConfig">提交更改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Page Body -->
+
+<script>
+    let vm_op = new Vue({
+        el: '#app',
+        data: 
+        {
+            game:
+            {
+                main:
+                {
+                    score:false,
+                    cunstom:false,
+                    club:false
+                },
+                mahjong:
+                {
+                    score:false,
+                    cunstom:false,
+                    club:false
+                },
+                ox:
+                {
+                    score:false,
+                    cunstom:false,
+                    club:false
+                },
+                psz:
+                {
+                    score:false,
+                    cunstom:false,
+                    club:false
+                },
+                fun:
+                {
+                    email:false,
+                    record:false,
+                    ask:false,
+                    bank:false,
+                    rank:false,
+                    task:false,
+                    sign:false
+                },
+                cfg:
+                {
+                    any_transfer:false,
+                    must_phone:false,
+                    must_bind:false
+                }
+            },
+            svr:
+            {
+                host:"",
+                port:null,
+                gmport:null
+            }
+        },
+        created()
+        {
+            let self = this
+            $.ajax({
+                type: "POST",
+                url: "/system/getconfig",
+                dataType: 'json',
+                data:{},
+                xhrFields: {
+                    withCredentials: true
+                },
+                crossDomain: true,
+                success:function(response)
+                {
+                    if(response.game)
+                    {
+                        self.game = response.game
+                        self.game.main=self.game.main||{}
+                        self.game.mahjong=self.game.mahjong||{}
+                        self.game.ox=self.game.ox||{}
+                        self.game.psz=self.game.psz||{}
+                    }
+                    if(response.svr)
+                    {
+                        self.svr = response.svr
+                    }
+                },
+                error:function(){
+                    layer.msg("请求错误", {icon: 5, time: 2000})
+                },
+            })
+        },
+        computed:
+        {
+        },
+        methods: 
+        {
+            updateSvr:function()
+            {
+                $.ajax({
+                    type: "POST",
+                    url: "/system/UpdateConfig",
+                    dataType: 'json',
+                    data:{
+                        svr_str:JSON.stringify(this.svr)
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                        }
+                        else
+                        {
+                            layer.msg("修改成功", {icon: 1, time: 2000})
+                        }
+                    },
+                    error:function(){
+                        layer.msg("请求错误", {icon: 5, time: 2000})
+                    },
+                })
+            },
+            updateConfig:function()
+            {
+                $.ajax({
+                    type: "POST",
+                    url: "/system/UpdateConfig",
+                    dataType: 'json',
+                    data:{
+                        game_str:JSON.stringify(this.game)
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                        }
+                        else
+                        {
+                            layer.msg("修改成功", {icon: 1, time: 2000})
+                        }
+                    },
+                    error:function(){
+                        layer.msg("请求错误", {icon: 5, time: 2000})
+                    },
+                })
+            }
+        }
+    })
+</script>
+    <% include modules/admin/view/common/footer.cshtml %>

@@ -1,0 +1,299 @@
+﻿    <% include modules/admin/view/common/header.cshtml %>
+    <% include modules/admin/view/common/loading_container.cshtml %>
+    <script src="/statics/custom/vue-page.js"></script>
+    <!-- Page Body -->
+    <div id="app" class="page-body">
+        <div class="row">
+            <div class="col-xs-3 col-md-3">
+                <select v-model="select_index" class="form-select">
+                    <option v-for="(bd,index) in blinds" :value="index">{{bd.id}}</option>
+                </select>
+            </div>
+            <div class="col-xs-3 col-md-3">
+                <button class="btn shiny btn-primary " type="button" @click="modify">修改</button>
+            </div>
+            <div class="col-xs-3 col-md-3">
+                <button class="btn shiny btn-primary " type="button" @click="add">新增</button>
+            </div>
+        </div>
+        <div style="width: 100%;height: 20px;"></div>
+        <div class="row">
+            <div class="col-xs-12 col-md-12">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">盲注详情</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <table id="tb_blind_list" class="table table-bordered table-striped">
+                            <thead>
+                            <tr style="font-size: 14px;">
+                                <th>盲注等级</th>
+                                <th>小盲</th>
+                                <th>大盲</th>
+                                <th>前注</th>
+                                <th>时长</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in blinds[select_index].items">
+                                    <td>{{item.level}}</td>
+                                    <td>{{item.small_blind}}</td>
+                                    <td>{{item.big_blind}}</td>
+                                    <td>{{item.ante}}</td>
+                                    <td>{{item.seconds}}秒</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Body -->
+
+<!--Page Related Scripts-->
+<script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+<script src="/statics/js/datatable/jquery.dataTables.min.js"></script>
+<script src="/statics/js/datatable/ZeroClipboard.js"></script>
+<script src="/statics/js/datatable/dataTables.tableTools.min.js"></script>
+<script src="/statics/js/datatable/dataTables.bootstrap.min.js"></script>
+<script src="/statics/js/datetime/bootstrap-datetimepicker.min.js"></script>
+<link href="/statics/css/bootstrap/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<script type="text/javascript">
+    $(function(){
+        $('#id_start_time').datetimepicker({
+            minDate:"1000-1-1",
+            dayViewHeaderFormat:"YYYY年 MMMM",
+            locale : 'zh-cn',
+            zIndex:20190813
+        });
+        $('#id_end_time').datetimepicker({
+            minDate:"1000-1-1",
+            dayViewHeaderFormat:"YYYY年 MMMM",
+            locale : 'zh-cn',
+            zIndex:20190813
+        });
+    })
+    var vm = new Vue({
+        el: '#app',
+        data: 
+        {
+            select_index:0,
+            blinds:[],
+        },
+        components:
+        {
+            'vue-nav': Vnav
+        },
+        created()
+        {
+            this.updateDates()
+        },
+        methods:
+        {
+            updateDates:function()
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/blind/list",
+                    dataType: 'json',
+                    data:{},
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                            return
+                        }
+                        self.blinds=response.blinds
+                    },
+                    error:function(){
+                
+                    },
+                })
+            },
+            modify:function()
+            {
+                vm_op.init(this.blinds[this.select_index],false)
+                layer.open({
+                    type: 1,
+                    title: '盲注表-修改',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['80%' , '700px'],
+                    content: $('#id_blind')
+                });
+            },
+            add:function()
+            {
+                vm_op.init(this.blinds[this.select_index],true)
+                layer.open({
+                    type: 1,
+                    title: '盲注表-新增',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['80%' , '700px'],
+                    content: $('#id_blind')
+                });
+            }
+        }
+    });
+</script>
+<div>
+    <div id="custom">
+        <div id="id_blind" style="display: none;padding:50px;padding-top:20px;padding-bottom:10px">
+            <table id="tb_item_list" class="table table-bordered table-striped">
+                <tbody>
+                    <tr>
+                        <td style="width: 100px;">盲注id</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="id" :disabled="!is_add" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>盲注详情</td>
+                        <td>
+                            <textarea rows="25" v-model="items" style="width: 100%;"></textarea>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="text-align:center;padding-top:10px">
+                <button class="btn shiny btn-primary " type="button" @click="modify" v-show="!is_add">修改</button>
+                <button class="btn shiny btn-primary " type="button" @click="add" v-show="is_add">新增</button>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var vm_op = new Vue({
+            el: '#custom',
+            data: 
+            {
+                is_add:false,
+                id:"",
+                items:""
+            },
+            methods: 
+            {
+                init:function(bd,is_add)
+                {
+                    this.is_add=is_add||false
+                    bd=bd||{}
+                    this.id=bd.id||-1
+                    this.items=JSON.stringify(bd.items||[])
+                },
+                modify:function()
+                {
+                    let items=[]
+                    try{
+                        items=JSON.parse(this.items)
+                    }
+                    catch(e)
+                    {
+                        layer.msg("json 格式化失败", {icon: 1, time: 2000})
+                        return
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/blind/modify",
+                        dataType: 'json',
+                        data:{
+                            id:parseInt(this.id),
+                            items:items
+                        },
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.errcode)
+                            {
+                                layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                for(let i=0;i<vm.blinds.length;++i)
+                                {
+                                    let bd = vm.blinds[i]
+                                    if(bd.id==response.blind.id)
+                                    {
+                                        vm.blinds[i]=response.blind
+                                        break
+                                    }
+                                }
+                                layer.closeAll()
+                                layer.msg("盲注表修改成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                },
+                add:function()
+                {
+                    let items=[]
+                    try{
+                        items=JSON.parse(this.items)
+                    }
+                    catch(e)
+                    {
+                        layer.msg("json 格式化失败", {icon: 1, time: 2000})
+                        return
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/blind/add",
+                        dataType: 'json',
+                        data:{
+                            id:parseInt(this.id),
+                            items:items
+                        },
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.errcode)
+                            {
+                                layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                vm.blinds=[response.blind].concat(vm.blinds)
+                                layer.closeAll()
+                                layer.msg("盲注表新增成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                }
+            }
+        });
+    </script>
+</div>
+    <% include modules/admin/view/common/footer.cshtml %>

@@ -1,0 +1,78 @@
+<% include modules/admin/view/common/header.cshtml %>
+<% include modules/admin/view/common/loading_container.cshtml %>
+    <div class="login-container animated fadeInDown" style="margin-top:20px" id="app">
+        <div class="loginbox bg-white">
+            <form name="login_form" class="form-horizontal" method="post" role="form">
+                <div class="loginbox-title">密码修改</div>
+                <div style="width:100px;height:20px"></div>
+                <div class="loginbox-textbox">
+                    <input name="new_pwd" type="password" class="form-control" placeholder="新密码" v-model="new_pwd"/>
+                </div>
+                <div class="loginbox-textbox">
+                    <input name="confirm_pwd" type="password" class="form-control" placeholder="确认新密码" v-model="confirm_pwd"/>
+                </div>
+                <div class="loginbox-submit">
+                    <input type="button" class="btn btn-primary btn-block" value="修改" @click="onUpdate">
+                </div>
+            </form>
+        </div>
+        <div class="logobox">
+        </div>
+    </div>
+<script>
+    let vm_op = new Vue({
+        el: '#app',
+        data: 
+        {
+            new_pwd:"",
+            confirm_pwd:""
+        },
+        methods: 
+        {
+            onUpdate:function()
+            {
+                if(this.confirm_pwd!=this.new_pwd)
+                {
+                    layer.msg("新密码两次不同！", {icon: 5, time: 2000})
+                    return
+                }
+                if(this.new_pwd.length<6)
+                {
+                    layer.msg("新密码过短！", {icon: 5, time: 2000})
+                    return
+                }
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/system/modifypwd",
+                    dataType: 'json',
+                    data:
+                    {
+                        new_pwd:self.new_pwd
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                            return
+                        }
+                        layer.msg("密码修改成功", {icon: 1, time: 2000})
+                        setTimeout(()=>
+                        {
+                            window.location.href="/login"
+                        },2000)
+                    },
+                    error:function(){
+                        layer.msg("请求错误", {icon: 5, time: 2000})
+                    },
+                })
+            }
+        }
+    })
+</script>
+<% include modules/admin/view/common/footer.cshtml %>

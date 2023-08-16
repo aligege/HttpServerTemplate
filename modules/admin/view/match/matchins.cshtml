@@ -1,0 +1,380 @@
+﻿    <% include modules/admin/view/common/header.cshtml %>
+    <% include modules/admin/view/common/loading_container.cshtml %>
+    <script src="/statics/custom/vue-page.js"></script>
+    <!-- Page Body -->
+    <div id="app" class="page-body">
+        <div class="row">
+            <div class="col-xs-12 col-md-12">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">服务器</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <div style="margin:10px">
+                            <button class="btn   purple" type="button" @click="add()"><i class="fa fa-plus"></i> 新增</button>
+                        </div>
+                        <table id="tb_match_list" class="table table-bordered table-striped">
+                            <thead>
+                            <tr style="font-size: 14px;">
+                                <th>id</th>
+                                <th>名称</th>
+                                <th>比赛开始时间</th>
+                                <th>比赛人数</th>
+                                <th>获奖</th>
+                                <th>状态</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="match in matches">
+                                    <td>{{match.id}}</td>
+                                    <td>{{match.match?.name}}</td>
+                                    <td>{{convertTime(match.start_time)}}</td>
+                                    <td>{{match.player_num}}</td>
+                                    <td>
+                                        <span v-if="match.state==4&&match.player_num>0">
+                                            <a href="#" class="btn btn-danger btn-xs edit" @click="showPrize(match)"><i class="fa fa-edit"></i> 详情</a>
+                                        </span>
+                                        <span v-else>...</span>
+                                    </td>
+                                    <td>
+                                        <span v-if="match.state==0">等待</span>
+                                        <span v-if="match.state==1">进行中</span>
+                                        <span v-if="match.state==3">取消</span>
+                                        <span v-if="match.state==4">结束</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="row">
+                        <div class="col-sm-5"></div>
+                        <div class="col-sm-7">
+                            <vue-nav :cur="cur" :all="all" :url="url" :total="total" :jump_cb="onPage"></vue-nav>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Body -->
+
+<!--Page Related Scripts-->
+<script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+<script src="/statics/js/datatable/jquery.dataTables.min.js"></script>
+<script src="/statics/js/datatable/ZeroClipboard.js"></script>
+<script src="/statics/js/datatable/dataTables.tableTools.min.js"></script>
+<script src="/statics/js/datatable/dataTables.bootstrap.min.js"></script>
+<script src="/statics/js/datetime/bootstrap-datetimepicker.min.js"></script>
+<link href="/statics/css/bootstrap/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<script type="text/javascript">
+    var vm_match_list = new Vue({
+        el: '#app',
+        data: 
+        {
+            matches:[],
+            items:[],
+            cur: 0,
+            all: 0,
+            total: 0,
+            url:window.location.href
+        },
+        components:
+        {
+            'vue-nav': Vnav
+        },
+        created()
+        {
+            this.onPage(1)
+            this.initItems()
+        },
+        methods:
+        {
+            showPrize(match)
+            {
+                vm_players.init(match)
+                layer.open({
+                    type: 1,
+                    title: '比赛-获奖',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_players')
+                });
+            },
+            remove(match_id)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/match/remove",
+                    dataType: 'json',
+                    data:{
+                        match_id:match_id,
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.errcode)
+                        {
+                            layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            return
+                        }
+                        for(let i=0;i<self.matches.length;++i)
+                        {
+                            let s = self.matches[i]
+                            if(s.id==match_id)
+                            {
+                                self.matches.splice(i,1)
+                                break
+                            }
+                        }
+                        layer.msg("删除成功", {icon: 1, time: 2000})
+                    },
+                    error:function(){
+                
+                    },
+                })
+            },
+            modify(match)
+            {
+                vm_op.init(false,match)
+                layer.open({
+                    type: 1,
+                    title: '比赛-修改比赛',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_match')
+                });
+            },
+            updateState(match_id,state)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/match/updatestate",
+                    dataType: 'json',
+                    data:{
+                        match_id:match_id,
+                        open:state
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.errcode)
+                        {
+                            layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            return
+                        }
+                        for(let i=0;i<self.matches.length;++i)
+                        {
+                            let s = self.matches[i]
+                            if(s.id==match_id)
+                            {
+                                s.open = state
+                                break
+                            }
+                        }
+                        if(state==1)
+                        {
+                            layer.msg("显示成功", {icon: 1, time: 2000})
+                        }
+                        else
+                        {
+                            layer.msg("隐藏成功", {icon: 1, time: 2000})
+                        }
+                    },
+                    error:function(){
+                
+                    },
+                })
+            },
+            convertTime:function(time)
+            {
+                return moment(time).format('YYYY-M-D H:mm:ss')
+            },
+            onPage:function(page)
+            {
+                this.updateDatas(page-1)
+            },
+            initItems:function()
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/item/ItemList",
+                    dataType: 'json',
+                    data:{
+                        page:page
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        self.items=response.items||[]
+                    },
+                    error:function(){
+                
+                    },
+                })
+            },
+            getItem:function(item_id)
+            {
+                for(let i=0;i<this.items.length;++i)
+                {
+                    if(this.items[i].id==item_id)
+                    {
+                        return this.items[i]
+                    }
+                }
+                return null
+            },
+            updateDatas:function(page)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/match/matchinslist",
+                    dataType: 'json',
+                    data:{
+                        page:page
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                            return
+                        }
+                        self.cur=response.page
+                        self.all=response.total_page
+                        self.total=response.count
+                        self.matches=response.matches||[]
+                    },
+                    error:function(){
+                
+                    },
+                })
+            }
+        }
+    });
+</script>
+<div>
+    <div id="custom_players">
+        <div id="id_players" style="display: none;padding:50px;padding-top:20px;padding-bottom:10px">
+            <table id="tb_player_list" class="table table-bordered table-striped">
+                <thead>
+                <tr style="font-size: 14px;">
+                    <th>名次</th>
+                    <th>id</th>
+                    <th>用户名</th>
+                    <th>手机号</th>
+                    <th>下场时间</th>
+                    <th>报名次数</th>
+                    <th>奖励</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="player in players">
+                        <td>{{player.rank}}</td>
+                        <td>{{player.id}}</td>
+                        <td>{{player.nickname}}</td>
+                        <td>{{player.phone}}</td>
+                        <td>{{convertTime(player.drop_time)}}</td>
+                        <td>{{player.reenter_time+1}}</td>
+                        <td>{{convertReward(player.reward)}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var vm_players = new Vue({
+            el: '#custom_players',
+            data: 
+            {
+                players:[]
+            },
+            methods: 
+            {
+                init:function(match)
+                {
+                    this.players=[]
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/match/matchranks",
+                        dataType: 'json',
+                        data:{
+                            ins_id:match.id
+                        },
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.err)
+                            {
+                                layer.msg(response.err, {icon: 5, time: 2000})
+                                return
+                            }
+                            self.players=response.players||[]
+                        },
+                        error:function(){
+                    
+                        },
+                    })
+                },
+                convertTime:function(time)
+                {
+                    return moment(time).format('YYYY-M-D H:mm:ss')
+                },
+                convertReward:function(reward)
+                {
+                    if(!reward)
+                    {
+                        return "--"
+                    }
+                    if(reward.id==-99)
+                    {
+                        return "获奖竞技点x"+reward.count
+                    }
+                    var item = vm_match_list.getItem(reward.id)
+                    if(!item)
+                    {
+                        return "道具x"+reward.count
+                    }
+                    return item.name+"x"+reward.count
+                }
+            }
+        });
+    </script>
+</div>
+    <% include modules/admin/view/common/footer.cshtml %>

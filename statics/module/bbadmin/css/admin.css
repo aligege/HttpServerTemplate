@@ -1,0 +1,12 @@
+.bbadmin-iframe {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 80px;
+    right: 0;
+    bottom: 0;
+    border: 0;
+    height:-webkit-calc(100% - 80px);
+    height:-moz-calc(100% - 80px); 
+    height:calc(100% - 80px);
+}

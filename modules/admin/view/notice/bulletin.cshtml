@@ -1,0 +1,394 @@
+﻿<% include modules/admin/view/common/header.cshtml %>
+<% include modules/admin/view/common/loading_container.cshtml %>
+<!-- Page Body -->
+<div id="app" class="page-body">
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div class="widget">
+                <div class="widget-header ">
+                    <span class="widget-caption">公告列表</span>
+                    <div class="widget-buttons">
+                        <a href="#" data-toggle="maximize">
+                            <i class="fa fa-expand"></i>
+                        </a>
+                        <a href="#" data-toggle="collapse">
+                            <i class="fa fa-minus"></i>
+                        </a>
+                        <a href="#" data-toggle="dispose">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="widget-body">
+                <div style="margin:10px">
+                    <button class="btn  purple" type="button" @click="addBulletin()"><i class="fa fa-plus"></i> 新增</button>
+                </div>
+                <table id="tb_room_list" class="table table-bordered table-striped">
+                    <thead>
+                        <th>公告id</th>
+                        <th>标题备注</th>
+                        <th>内容</th>
+                        <th>生效开始时间</th>
+                        <th>结束时间</th>
+                        <th>创建时间</th>
+                        <th>操作<th>
+                    </thead>
+                    <tbody>
+                        <tr v-for="bt in bt_list">
+                            <td>{{bt.id}}</td>
+                            <td>{{bt.title}}</td>
+                            <td>{{bt.content}}</td>
+                            <td>{{convertTime(bt.start_time)}}</td>
+                            <td>{{convertTime(bt.end_time)}}</td>
+                            <td>{{convertTime(bt.create_time)}}</td>
+                            <td>
+                                <a href="#" class="btn btn-info btn-xs edit" @click="updateBulletin(bt)"><i class="fa fa-edit"></i> 编辑</a>
+                                <a href="#" class="btn btn-danger btn-xs delete" @click="removeBulletin(bt.id)"><i class="fa fa-trash-o"></i> 删除</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Page Body -->
+
+<!--Page Related Scripts-->
+<script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+<script src="/statics/js/datatable/jquery.dataTables.min.js"></script>
+<script src="/statics/js/datatable/ZeroClipboard.js"></script>
+<script src="/statics/js/datatable/dataTables.tableTools.min.js"></script>
+<script src="/statics/js/datatable/dataTables.bootstrap.min.js"></script>
+<script type="text/javascript">
+    var bt_list_vm = new Vue({
+        el: '#app',
+        data: 
+        {
+            bt_list:[],
+        },
+        created()
+        {
+            let self = this
+            $.ajax({
+                type: "POST",
+                url: "/notice/bulletinList",
+                dataType: 'json',
+                data:{},
+                xhrFields: {
+                    withCredentials: true
+                },
+                crossDomain: true,
+                success:function(response)
+                {
+                    self.bt_list=response.bt_list||[]
+                },
+                error:function(){
+            
+                },
+            })
+        },
+        methods: 
+        {
+            convertTime:function(time)
+            {
+                if(!time||time<0)
+                {
+                    return ""
+                }
+                return moment(time).format('YYYY-M-D H:mm:ss')
+            },
+            addBulletin:function()
+            {
+                vm_op.initBulletin(true)
+                layer.open({
+                    type: 1,
+                    title: '公告-新增公告',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_bulletin')
+                });
+            },
+            updateBulletin:function(bt)
+            {
+                vm_op.initBulletin(false,bt)
+                layer.open({
+                    type: 1,
+                    title: '公告-修改公告',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_bulletin')
+                });
+            },
+            removeBulletin:function(bt_id)
+            {
+                let self = this
+                layer.open({
+                    title: '公告-删除公告',
+                    btn: ['确认'],
+                    btnAlign: 'c',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['200px' , '170px'],
+                    content: "确认删除公告id号("+bt_id+")?",
+                    yes: function(index, layero){
+                        $.ajax({
+                            type: "POST",
+                            url: "/notice/RemoveBulletin",
+                            dataType: 'json',
+                            data:JSON.stringify({id:bt_id}),
+                            xhrFields: {
+                                withCredentials: true
+                            },
+                            crossDomain: true,
+                            success:function(response)
+                            {
+                                if(response.err)
+                                {
+                                    layer.msg(response.err, {icon: 5, time: 2000})
+                                    return
+                                }
+                                else
+                                {
+                                    for(let i=0;i<self.nt_list.length;++i)
+                                    {
+                                        let r = self.nt_list[i]
+                                        if(r.id==response.id)
+                                        {
+                                            self.nt_list.splice(i,1)
+                                            break
+                                        }
+                                    }
+                                    layer.close(index)
+                                    layer.msg("删除成功", {icon: 1, time: 2000})
+                                }
+                            },
+                            error:function(err){
+                                layer.msg("请求错误", {icon: 5, time: 2000})
+                            },
+                        })
+                    }
+                });
+            }
+        }
+    });
+</script>
+<div>
+    <div id="custom">
+        <div id="id_bulletin" style="display: none;padding:50px;padding-top:20px;padding-bottom:10px">
+            <table id="tb_bulletin_list" class="table table-bordered table-striped">
+                <tbody>
+                    <tr v-if="!is_add">
+                        <td>公告id</td>
+                        <td>
+                            <input type="number" step="1" class="form-control" v-model="id" disabled="disabled">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>标题备注</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="title">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>内容</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="content">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>生效开始时间</td>
+                        <td>
+                            <div class="input-group">
+                                <input class="form-control date-picker" id="id_start_time" type="text">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>生效截止时间</td>
+                        <td>
+                            <div class="input-group">
+                                <input class="form-control" id="id_end_time" type="text">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size:90%;color:#c7254e;background-color:#f9f2f4;margin-top:5px">注：结束时间为空表示生效一次，且立即生效</p>
+            <div style="text-align:center;padding-top:10px">
+                <button v-if="is_add" class="btn shiny btn-primary " type="button" @click="addBulletin">新增公告</button>
+                <button v-if="!is_add" class="btn shiny btn-primary " type="button" @click="updateBulletin">修改公告</button>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(function () {
+            $('#id_start_time').datetimepicker({
+                minDate:"1000-1-1",
+                dayViewHeaderFormat:"YYYY年 MMMM",
+                language : 'zh-cn',
+                zIndex:20190813
+            });
+            $('#id_end_time').datetimepicker({
+                minDate:"1000-1-1",
+                dayViewHeaderFormat:"YYYY年 MMMM",
+                language : 'zh-cn',
+                zIndex:20190813
+            });
+        });
+        var vm_op = new Vue({
+            el: '#custom',
+            data: 
+            {
+                is_add:false,
+                id:0,
+                title:"",
+                content:"",
+                start_time:null,
+                end_time:null
+            },
+            methods: 
+            {
+                initBulletin:function(is_add,bt)
+                {
+                    if(!bt)
+                    {
+                        bt={}
+                    }
+                    this.is_add=is_add
+                    this.id=bt.id||0
+                    this.title=bt.title||""
+                    this.content=bt.content||""
+                    if(bt.start_time)
+                    {
+                        $("#id_start_time").val(moment(bt.start_time).format("YYYY-MM-DD H:m"))
+                    }
+                    if(bt.end_time)
+                    {
+                        $("#id_end_time").val(moment(bt.end_time).format("YYYY-MM-DD H:m"))
+                    }
+                },
+                addBulletin:function()
+                {
+                    let str_start_time =$('#id_start_time').val()
+                    let start_time = (new Date(str_start_time).getTime())||0
+                    let str_end_time =$('#id_end_time').val()
+                    let end_time = (new Date(str_end_time).getTime())||0
+
+                    let bt=
+                    {
+                        title:this.title,
+                        content:this.content,
+                        start_time:start_time,
+                        end_time:end_time
+                    }
+                    if(!bt.content||!bt.start_time)
+                    {
+                        layer.msg("起始时间和内容不能为空", {icon: 5, time: 2000});
+                        return
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/notice/addbulletin",
+                        dataType: 'json',
+                        data:JSON.stringify(bt),
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.err)
+                            {
+                                layer.msg(response.err, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                bt_list_vm.bt_list.unshift(response.bt)
+                                layer.closeAll()
+                                layer.msg("公告添加成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                },
+                updateBulletin:function()
+                {
+                    let str_start_time =$('#id_start_time').val()
+                    let start_time = (new Date(str_start_time).getTime())||0
+                    let str_end_time =$('#id_end_time').val()
+                    let end_time = (new Date(str_end_time).getTime())||0
+
+                    let bt=
+                    {
+                        id:this.id,
+                        title:this.title,
+                        content:this.content,
+                        start_time:start_time,
+                        end_time:end_time
+                    }
+                    if(!bt.content||!bt.start_time)
+                    {
+                        layer.msg("起始时间和内容不能为空", {icon: 5, time: 2000});
+                        return
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/notice/updateBulletin",
+                        dataType: 'json',
+                        data:JSON.stringify(bt),
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.err)
+                            {
+                                layer.msg(response.err, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                for(let i=0;i<bt_list_vm.bt_list.length;++i)
+                                {
+                                    let r = bt_list_vm.bt_list[i]
+                                    if(r.id==response.bt.id)
+                                    {
+                                        bt_list_vm.bt_list[i]=response.bt
+                                        break
+                                    }
+                                }
+                                layer.closeAll()
+                                bt_list_vm.bt_list.sort((a,b)=>
+                                {
+                                    return b.id-a.id
+                                })
+                                layer.msg("公告更新成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                }
+            }
+        });
+    </script>
+</div>
+<% include modules/admin/view/common/footer.cshtml %>

@@ -1,0 +1,421 @@
+<!-- Main Container -->
+    <div class="main-container container-fluid" style="height:-webkit-calc(100% - 80px);height:-moz-calc(100% - 80px); height:calc(100% - 80px);">
+        <!-- Page Container -->
+        <div class="page-container" style="height: 100%">
+            <!-- Page Sidebar -->
+            <div class="page-sidebar" id="sidebar">
+                <!-- Page Sidebar Header-->
+                <div class="sidebar-header-wrapper">
+                    <input type="text" class="searchinput" />
+                    <i class="searchicon fa fa-search"></i>
+                    <div class="searchhelper">搜索 报告, 图标, 邮件 或者 通知</div>
+                </div>
+                <!-- /Page Sidebar Header -->
+                <!-- Sidebar Menu -->
+                <ul id="nav" class="nav sidebar-menu">
+                    <!--Dashboard-->
+                    <li>
+                        <a href="/system">
+                            <i class="menu-icon glyphicon glyphicon-home"></i>
+                            <span class="menu-text"> 数据统计后台 </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/qa/qalist">
+                            <i class="menu-icon glyphicon glyphicon-question-sign"></i>
+                            <span class="menu-text"> 游戏问题&反馈 </span>
+                        </a>
+                    </li>
+                    <li style="display:none">
+                        <a href="/mj/getitemrecords">
+                            <i class="menu-icon glyphicon glyphicon-certificate"></i>
+                            <span class="menu-text"> 道具记录 </span>
+                        </a>
+                    </li>
+                    <!--系统功能-->
+                    <li v-bind:class="{active:isSelected(9),open:isSelected(9)}">
+                        <a href="#" class="menu-dropdown">
+                            <i class="menu-icon glyphicon glyphicon-cog"></i>
+                            <span class="menu-text"> 系统功能 </span>
+
+                            <i class="menu-expand"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li v-bind:class="{active:isSub(9,1)}">
+                                <a href="/system/modifypwd?selected=9&sub_selected=1&title=系统功能&sub_title=修改密码">
+                                    <span class="menu-text">修改密码</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/system/adminlist?selected=9&sub_selected=5&title=系统功能&sub_title=管理员">
+                                    <span class="menu-text"> 管理员 </span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(9,2)}">
+                                <a href="/system/setup?selected=9&sub_selected=2&title=系统功能&sub_title=功能设置">
+                                    <span class="menu-text">功能设置</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/notice/marquee?selected=9&sub_selected=3&title=系统功能&sub_title=跑马灯">
+                                    <span class="menu-text"> 跑马灯 </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/notice/bulletin?selected=9&sub_selected=4&title=系统功能&sub_title=公告">
+                                    <span class="menu-text"> 公告 </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <!--用户数据-->
+                    <li v-bind:class="{active:isSelected(1),open:isSelected(1)}">
+                        <a href="#" class="menu-dropdown">
+                            <i class="menu-icon glyphicon glyphicon-user"></i>
+                            <span class="menu-text"> 用户数据 </span>
+
+                            <i class="menu-expand"></i>
+                        </a>
+
+                        <ul class="submenu">
+                            <li v-bind:class="{active:isSub(1,1)}">
+                                <a href="/User/list?selected=1&sub_selected=1&title=用户数据&sub_title=用户列表">
+                                    <span class="menu-text">用户列表</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(1,2)}">
+                                <a href="/User/loginregister?selected=1&sub_selected=2&title=用户数据&sub_title=注册登陆">
+                                    <span class="menu-text">注册登陆</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(1,3)}">
+                                <a href="/User/stay?selected=1&sub_selected=3&title=用户数据&sub_title=留存统计">
+                                    <span class="menu-text">留存统计</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <!--代理数据-->
+                    <li v-bind:class="{active:isSelected[3],open:isSelected[3]}">
+                        <a href="#" class="menu-dropdown">
+                            <i class="menu-icon fa fa-desktop"></i>
+                            <span class="menu-text"> 代理数据 </span>
+
+                            <i class="menu-expand"></i>
+                        </a>
+
+                        <ul class="submenu">
+                            <li v-bind:class="{active:isSub(3,1)}">
+                                <a href="/proxy/list?selected=3&sub_selected=1&title=代理数据&sub_title=代理账户">
+                                    <span class="menu-text">代理账户</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(3,2)}">
+                                <a href="/proxy/give?selected=3&sub_selected=2&title=代理数据&sub_title=代理赠送">
+                                    <span class="menu-text">代理赠送</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <!--账单数据-->
+                    <li v-bind:class="{active:isSelected(8),open:isSelected(8)}">
+                        <a href="#" class="menu-dropdown">
+                            <i class="menu-icon glyphicon glyphicon-file"></i>
+                            <span class="menu-text"> 账单数据 </span>
+
+                            <i class="menu-expand"></i>
+                        </a>
+
+                        <ul class="submenu">
+                            <li v-bind:class="{active:isSub(8,1)}">
+                                <a href="/order/coinrecords?selected=8&sub_selected=1&title=账单数据&sub_title=游戏账单">
+                                    <span class="menu-text">游戏账单</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(8,2)}">
+                                <a href="/order/GiveRecords?selected=8&sub_selected=2&title=账单数据&sub_title=赠送账单">
+                                    <span class="menu-text">赠送账单</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li v-bind:class="{active:isSelected(5),open:isSelected(5)}">
+                        <a href="#" class="menu-dropdown">
+                            <i class="menu-icon fa fa-bar-chart-o"></i>
+                            <span class="menu-text"> 麻将 </span>
+
+                            <i class="menu-expand"></i>
+                        </a>
+
+                        <ul class="submenu">
+                            <li v-bind:class="{active:isSub(5,6)}">
+                                <a href="/mahjong/setup?selected=5&sub_selected=6&title=麻将&sub_title=玩法设置">
+                                    <span class="menu-text">玩法设置</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(5,1)}">
+                                <a href="/mahjong/roomlist?selected=5&sub_selected=1&title=麻将&sub_title=房间列表">
+                                    <span class="menu-text">房间列表</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(5,7)}">
+                                <a href="/mahjong/online?selected=5&sub_selected=7&title=麻将&sub_title=在线数据">
+                                    <span class="menu-text">在线数据</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(5,3)}">
+                                <a href="/mahjong/roomhot?selected=5&sub_selected=3&title=麻将&sub_title=房间热度">
+                                    <span class="menu-text">房间热度</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(5,4)}">
+                                <a href="/mahjong/roomcoin?selected=5&sub_selected=4&title=麻将&sub_title=房间金币">
+                                    <span class="menu-text">房间金币</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(5,2)}">
+                                <a href="/mahjong/RobotRoomCfgList?selected=5&sub_selected=2&title=麻将&sub_title=AI机器人">
+                                    <span class="menu-text">AI机器人</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(5,5)}">
+                                <a href="/mahjong/whitelist?selected=5&sub_selected=5&title=麻将&sub_title=作弊白名单">
+                                    <span class="menu-text">作弊白名单</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li v-bind:class="{active:isSelected(6),open:isSelected(6)}">
+                        <a href="#" class="menu-dropdown">
+                            <i class="menu-icon fa fa-bar-chart-o"></i>
+                            <span class="menu-text"> 牛牛 </span>
+
+                            <i class="menu-expand"></i>
+                        </a>
+
+                        <ul class="submenu">
+                            <li v-bind:class="{active:isSub(6,6)}">
+                                <a href="/ox/setup?selected=6&sub_selected=6&title=牛牛&sub_title=玩法设置">
+                                    <span class="menu-text">玩法设置</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(6,1)}">
+                                <a href="/ox/roomlist?selected=6&sub_selected=1&title=牛牛&sub_title=房间列表">
+                                    <span class="menu-text">房间列表</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(6,7)}">
+                                <a href="/ox/online?selected=6&sub_selected=7&title=牛牛&sub_title=在线数据">
+                                    <span class="menu-text">在线数据</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(6,3)}">
+                                <a href="/ox/roomhot?selected=6&sub_selected=3&title=牛牛&sub_title=房间热度">
+                                    <span class="menu-text">房间热度</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(6,4)}">
+                                <a href="/ox/roomcoin?selected=6&sub_selected=4&title=牛牛&sub_title=房间金币">
+                                    <span class="menu-text">房间金币</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(6,2)}">
+                                <a href="/ox/RobotRoomCfgList?selected=6&sub_selected=2&title=牛牛&sub_title=AI机器人">
+                                    <span class="menu-text">AI机器人</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(6,5)}">
+                                <a href="/ox/whitelist?selected=6&sub_selected=5&title=牛牛&sub_title=作弊白名单">
+                                    <span class="menu-text">作弊白名单</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li v-bind:class="{active:isSelected(7),open:isSelected(7)}">
+                        <a href="#" class="menu-dropdown">
+                            <i class="menu-icon fa fa-bar-chart-o"></i>
+                            <span class="menu-text"> 拼三张 </span>
+
+                            <i class="menu-expand"></i>
+                        </a>
+
+                        <ul class="submenu">
+                            <li v-bind:class="{active:isSub(7,6)}">
+                                <a href="/psz/setup?selected=7&sub_selected=6&title=拼三张&sub_title=玩法设置">
+                                    <span class="menu-text">玩法设置</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(7,1)}">
+                                <a href="/psz/roomlist?selected=7&sub_selected=1&title=拼三张&sub_title=房间列表">
+                                    <span class="menu-text">房间列表</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(7,7)}">
+                                <a href="/psz/online?selected=7&sub_selected=7&title=牛牛&sub_title=在线数据">
+                                    <span class="menu-text">在线数据</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(7,3)}">
+                                <a href="/psz/roomhot?selected=7&sub_selected=3&title=拼三张&sub_title=房间热度">
+                                    <span class="menu-text">房间热度</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(7,4)}">
+                                <a href="/psz/roomcoin?selected=7&sub_selected=4&title=拼三张&sub_title=房间金币">
+                                    <span class="menu-text">房间金币</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(7,2)}">
+                                <a href="/psz/RobotRoomCfgList?selected=7&sub_selected=2&title=拼三张&sub_title=AI机器人">
+                                    <span class="menu-text">AI机器人</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(7,5)}">
+                                <a href="/psz/whitelist?selected=7&sub_selected=5&title=拼三张&sub_title=作弊白名单">
+                                    <span class="menu-text">作弊白名单</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <!-- <li v-bind:class="{active:isSelected(4),open:isSelected(4)}">
+                        <a href="#" class="menu-dropdown">
+                            <i class="menu-icon fa fa-bar-chart-o"></i>
+                            <span class="menu-text"> 财神2019 </span>
+
+                            <i class="menu-expand"></i>
+                        </a>
+
+                        <ul class="submenu">
+                            <li v-bind:class="{active:isSub(4,1)}">
+                                <a href="/casino/index?selected=4&sub_selected=1&title=财神2019&sub_title=概览统计">
+                                    <span class="menu-text">概览统计</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(4,2)}">
+                                <a href="/casino/room?selected=4&sub_selected=2&title=财神2019&sub_title=房间统计">
+                                    <span class="menu-text">房间统计</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(4,3)}">
+                                <a href="/casino/user?selected=4&sub_selected=3&title=财神2019&sub_title=用户统计">
+                                    <span class="menu-text">用户统计</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(4,4)}">
+                                <a href="/casino/strategy?selected=4&sub_selected=4&title=财神2019&sub_title=策略统计">
+                                    <span class="menu-text">策略模块</span>
+                                </a>
+                            </li>
+                            <li v-bind:class="{active:isSub(4,5)}">
+                                <a href="/casino/currency?selected=4&sub_selected=5&title=财神2019&sub_title=下注统计">
+                                    <span class="menu-text">金币统计</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li> -->
+                </ul>
+                <script>
+                    new Vue({
+                        el: '#nav',
+                        data: 
+                        {
+                            selected: {},
+                            sub_selected: {}
+                        },
+                        created() {
+                            this.selected[tool.getQueryString("selected")]=true
+                            this.sub_selected[tool.getQueryString("sub_selected")]=true
+                        },
+                        methods:
+                        {
+                            isSub:function (sel,sub_sel)
+                            {
+                                if(!sel||!sub_sel)
+                                {
+                                    return false
+                                }
+                                if(!this.selected[sel])
+                                {
+                                    return false
+                                }
+                                if(!this.sub_selected[sub_sel])
+                                {
+                                    return false
+                                }
+                                return true
+                            },
+                            isSelected:function (sel)
+                            {
+                                if(!sel)
+                                {
+                                    return false
+                                }
+                                if(!this.selected[sel])
+                                {
+                                    return false
+                                }
+                                return true
+                            }
+                        }
+                    })
+                </script>
+                <!-- /Sidebar Menu -->
+            </div>
+            <!-- /Page Sidebar -->
+            <!-- Page Content -->
+            <div class="page-content" style="position: relative;height: 100%">
+                <div id="nav2">
+                    <!-- Page Breadcrumb -->
+                    <div class="page-breadcrumbs">
+                        <ul class="breadcrumb">
+                            <li>
+                                <i class="fa fa-home"></i>
+                                <a href="#">主页</a>
+                            </li>
+                            <%if(model.title){%>
+                                <li>
+                                    <a href="#"><%=model.title%></a>
+                                </li>
+                                <li class="active"><%=model.sub_title%></li>
+                            <%}%>
+                        </ul>
+                    </div>
+                    <!-- /Page Breadcrumb -->
+                    <!-- Page Header -->
+                    <div class="page-header position-relative">
+                        <div class="header-title" v-if="title">
+                            <h1>
+                                {{title}}
+                                <small>
+                                    <i class="fa fa-angle-right"></i>
+                                    {{sub_title}}
+                                </small>
+                            </h1>
+                        </div>
+                        <!--Header Buttons-->
+                        <div class="header-buttons">
+                            <a class="sidebar-toggler" href="#">
+                                <i class="fa fa-arrows-h"></i>
+                            </a>
+                            <a class="refresh" id="refresh-toggler" href="">
+                                <i class="glyphicon glyphicon-refresh"></i>
+                            </a>
+                            <a class="fullscreen" id="fullscreen-toggler" href="#">
+                                <i class="glyphicon glyphicon-fullscreen"></i>
+                            </a>
+                        </div>
+                        <!--Header Buttons End-->
+                    </div>
+                </div>
+                <script>
+                    var a = tool.getQueryString("title")
+                    new Vue({
+                        el: '#nav2',
+                        data: {
+                            title:tool.getQueryString("title"),
+                            sub_title:tool.getQueryString("sub_title")
+                        }
+                    })
+                </script>
+                <!-- /Page Header -->
+                

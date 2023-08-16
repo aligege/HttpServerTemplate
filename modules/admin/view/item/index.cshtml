@@ -1,0 +1,519 @@
+﻿    <% include modules/admin/view/common/header.cshtml %>
+    <% include modules/admin/view/common/loading_container.cshtml %>
+    <script src="/statics/custom/vue-page.js"></script>
+    <!-- Page Body -->
+    <div id="app" class="page-body">
+        <div class="row">
+            <div class="col-xs-12 col-md-12">
+                <div class="widget">
+                    <div class="widget-header ">
+                        <span class="widget-caption">道具</span>
+                        <div class="widget-buttons">
+                            <a href="#" data-toggle="maximize">
+                                <i class="fa fa-expand"></i>
+                            </a>
+                            <a href="#" data-toggle="collapse">
+                                <i class="fa fa-minus"></i>
+                            </a>
+                            <a href="#" data-toggle="dispose">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <div style="margin:10px">
+                            <button class="btn   purple" type="button" @click="add()"><i class="fa fa-plus"></i> 新增</button>
+                        </div>
+                        <table id="tb_item_list" class="table table-bordered table-striped">
+                            <thead>
+                            <tr style="font-size: 14px;">
+                                <th>id</th>
+                                <th>名称</th>
+                                <th>价值</th>
+                                <th>类型</th>
+                                <th>售卖</th>
+                                <th>赠送</th>
+                                <th>兑换</th>
+                                <th>描述</th>
+                                <th>图标</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in items">
+                                    <td>{{item.id}}</td>
+                                    <td>{{item.name}}</td>
+                                    <td>{{item.coin}}</td>
+                                    <td>
+                                        <p v-if="item.type==0">兑换券</p>
+                                        <p v-if="item.type==1">话费券</p>
+                                        <p v-if="item.type==2">参赛券</p>
+                                    </td>
+                                    <td>
+                                        <p v-if="item.can_buy==1">可售卖</p>
+                                        <p v-else>否</p>
+                                    </td>
+                                    <td>
+                                        <p v-if="item.can_give==1">可赠送</p>
+                                        <p v-else>否</p>
+                                    </td>
+                                    <td>
+                                        <p v-if="item.can_exchange==1">可兑换</p>
+                                        <p v-else>否</p>
+                                    </td>
+                                    <td>{{item.des}}</td>
+                                    <td>{{item.icon}}</td>
+                                    <td>
+                                        <a href="#" class="btn btn-danger btn-xs delete" @click="remove(item.id)"><i class="fa fa-trash-o"></i> 删除</a>
+                                        <a href="#" class="btn btn-danger btn-xs edit" @click="modify(item)"><i class="fa fa-edit"></i> 修改</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+
+                        <div class="row">
+                        <div class="col-sm-5"></div>
+                        <div class="col-sm-7">
+                            <vue-nav :cur="cur" :all="all" :url="url" :total="total" :jump_cb="onPage"></vue-nav>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Body -->
+
+<!--Page Related Scripts-->
+<script src="/statics/js/charts/morris/raphael-2.0.2.min.js"></script>
+<script src="/statics/js/datatable/jquery.dataTables.min.js"></script>
+<script src="/statics/js/datatable/ZeroClipboard.js"></script>
+<script src="/statics/js/datatable/dataTables.tableTools.min.js"></script>
+<script src="/statics/js/datatable/dataTables.bootstrap.min.js"></script>
+<script src="/statics/js/datetime/bootstrap-datetimepicker.min.js"></script>
+<link href="/statics/css/bootstrap/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+<script type="text/javascript">
+    var vm_item_list = new Vue({
+        el: '#app',
+        data: 
+        {
+            items:[],
+            cur: 0,
+            all: 0,
+            total: 0,
+            url:window.location.href
+        },
+        components:
+        {
+            'vue-nav': Vnav
+        },
+        created()
+        {
+            this.updateDates(0)
+        },
+        methods:
+        {
+            add()
+            {
+                vm_op.init(true)
+                layer.open({
+                    type: 1,
+                    title: '道具-新增道具',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_item')
+                });
+            },
+            remove(item_id)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/item/remove",
+                    dataType: 'json',
+                    data:{
+                        item_id:item_id,
+                    },
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.errcode)
+                        {
+                            layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            return
+                        }
+                        for(let i=0;i<self.items.length;++i)
+                        {
+                            let s = self.items[i]
+                            if(s.id==item_id)
+                            {
+                                self.items.splice(i,1)
+                                break
+                            }
+                        }
+                        layer.msg("删除成功", {icon: 1, time: 2000})
+                    },
+                    error:function(){
+                
+                    },
+                })
+            },
+            modify(item)
+            {
+                vm_op.init(false,item)
+                layer.open({
+                    type: 1,
+                    title: '道具-修改道具',
+                    shadeClose: true, //点击遮罩关闭层
+                    maxmin: true,
+                    shade: 0.5,
+                    area : ['700px' , '570px'],
+                    content: $('#id_item')
+                });
+            },
+            convertTime:function(time)
+            {
+                return moment(time).format('YYYY-M-D H:mm:ss')
+            },
+            onPage:function(page)
+            {
+                this.updateDates(page-1)
+            },
+            updateDates:function(page)
+            {
+                let self = this
+                $.ajax({
+                    type: "POST",
+                    url: "/item/itemlist",
+                    dataType: 'json',
+                    data:JSON.stringify({
+                    }),
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    crossDomain: true,
+                    success:function(response)
+                    {
+                        if(response.err)
+                        {
+                            layer.msg(response.err, {icon: 5, time: 2000})
+                            return
+                        }
+                        self.cur=response.page
+                        self.all=response.total_page
+                        self.total=response.count
+                        self.items=response.items||[]
+                        self.items.sort((a,b)=>
+                        {
+                            return b.id-a.id
+                        })
+                    },
+                    error:function(){
+                
+                    },
+                })
+            }
+        }
+    });
+</script>
+<div>
+    <div id="custom">
+        <div id="id_item" style="display: none;padding:50px;padding-top:20px;padding-bottom:10px">
+            <table id="tb_item_list" class="table table-bordered table-striped">
+                <tbody>
+                    <tr v-if="!is_add">
+                        <td>道具id</td>
+                        <td>
+                            <input type="number" step="1" class="form-control" v-model="id" :disabled="true">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>道具名称</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="name">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>道具Icon</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="icon">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>道具竞技点</td>
+                        <td>
+                            <input type="number" step="1" class="form-control" v-model="coin">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>道具成本</td>
+                        <td>
+                            <input type="number" step="1" class="form-control" v-model="cost_coin">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>是否可赠送</td>
+                        <td>
+                            <div class="control-group">
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="type-give" type="radio" class="colored-blue" value="1" v-model="can_give"/>
+                                            <span class="text">可赠送</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="type-give" type="radio" class="colored-danger" value="0" v-model="can_give"/>
+                                            <span class="text">不可赠送</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>是否可售卖</td>
+                        <td>
+                            <div class="control-group">
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="type-buy" type="radio" class="colored-blue" value="1" v-model="can_buy"/>
+                                            <span class="text">可售卖</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="type-buy" type="radio" class="colored-danger" value="0" v-model="can_buy"/>
+                                            <span class="text">不可售卖</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>是否可兑换</td>
+                        <td>
+                            <div class="control-group">
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="type-exchange" type="radio" class="colored-blue" value="1" v-model="can_exchange"/>
+                                            <span class="text">可兑换</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="type-exchange" type="radio" class="colored-danger" value="0" v-model="can_exchange"/>
+                                            <span class="text">不可兑换</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>道具类型</td>
+                        <td>
+                            <div class="control-group">
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="type-radio" type="radio" class="colored-blue" value="0" v-model="type"/>
+                                            <span class="text">兑换券</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="type-radio" type="radio" class="colored-danger" value="1" v-model="type"/>
+                                            <span class="text">话费券</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5 col-sm-5 col-xs-5">
+                                    <div class="radio">
+                                        <label>
+                                            <input name="type-radio" type="radio" class="colored-danger" value="2" v-model="type"/>
+                                            <span class="text">参赛券</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>描述</td>
+                        <td>
+                            <input type="text" class="form-control" v-model="des">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="text-align:center;padding-top:10px">
+                <button v-if="is_add" class="btn shiny btn-primary " type="button" @click="add">新增道具配置</button>
+                <button v-if="!is_add" class="btn shiny btn-primary " type="button" @click="update">修改道具配置</button>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var vm_op = new Vue({
+            el: '#custom',
+            data: 
+            {
+                is_add:false,
+                id:0,
+                coin:0,
+                cost_coin:0,
+                name:"",
+                type:0,
+                des:"",
+                icon:"image/icon/ticket",
+                //是否可以赠送
+                can_give:0,
+                //是否可以兑换
+                can_exchange:0,
+                can_buy:0
+            },
+            methods: 
+            {
+                init:function(is_add,item)
+                {
+                    if(!item)
+                    {
+                        item={}
+                    }
+                    this.is_add=is_add
+                    this.id=item.id||0
+                    this.coin=item.coin||0
+                    this.cost_coin=item.cost_coin||0,
+                    this.name=item.name||""
+                    this.type=item.type||0
+                    this.des=item.des||""
+                    this.icon=item.icon||"image/icon/ticket"
+                    this.can_give=item.can_give||0
+                    this.can_exchange=item.can_exchange||0
+                    this.can_buy=item.can_buy||0
+                },
+                add:function()
+                {
+                    let item=
+                    {
+                        item:{
+                            id:this.id,
+                            coin:this.coin,
+                            cost_coin:this.cost_coin,
+                            name:this.name,
+                            type:this.type,
+                            des:this.des,
+                            icon:this.icon,
+                            can_give:this.can_give,
+                            can_exchange:this.can_exchange,
+                            can_buy:this.can_buy
+                        }
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/item/add",
+                        dataType: 'json',
+                        data:item,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.errcode)
+                            {
+                                layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                vm_item_list.items.unshift(response.item)
+                                layer.closeAll()
+                                layer.msg("服务器添加成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                },
+                update:function()
+                {
+                    let item=
+                    {
+                        item:{
+                            id:this.id,
+                            coin:this.coin,
+                            cost_coin:this.cost_coin,
+                            name:this.name,
+                            type:this.type,
+                            des:this.des,
+                            icon:this.icon,
+                            can_give:this.can_give,
+                            can_exchange:this.can_exchange,
+                            can_buy:this.can_buy
+                        }
+                    }
+                    let self = this
+                    $.ajax({
+                        type: "POST",
+                        url: "/item/update",
+                        dataType: 'json',
+                        data:item,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        success:function(response)
+                        {
+                            if(response.errcode)
+                            {
+                                layer.msg(response.errcode.des, {icon: 5, time: 2000})
+                            }
+                            else
+                            {
+                                for(let i=0;i<vm_item_list.items.length;++i)
+                                {
+                                    let r = vm_item_list.items[i]
+                                    if(r.id==response.item.id)
+                                    {
+                                        vm_item_list.items[i]=response.item
+                                        break
+                                    }
+                                }
+                                layer.closeAll()
+                                vm_item_list.items.sort((a,b)=>
+                                {
+                                    return b.id-a.id
+                                })
+                                layer.msg("服务器更新成功", {icon: 1, time: 2000})
+                            }
+                        },
+                        error:function(err){
+                            layer.msg("请求错误", {icon: 5, time: 2000})
+                        },
+                    })
+                }
+            }
+        });
+    </script>
+</div>
+    <% include modules/admin/view/common/footer.cshtml %>
